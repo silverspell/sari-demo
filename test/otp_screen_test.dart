@@ -45,6 +45,18 @@ Future<void> enterCode(WidgetTester tester, String code) async {
   }
 }
 
+Future<void> pumpOtpWithClock(
+  WidgetTester tester,
+  DateTime Function() now,
+) async {
+  await tester.pumpWidget(
+    MaterialApp(
+      theme: buildSariTheme(),
+      home: OtpScreen(now: now),
+    ),
+  );
+}
+
 void main() {
   testWidgets('dört kutu, başlık, alt başlık ve sabit yeniden gönderme', (
     tester,
@@ -69,7 +81,10 @@ void main() {
       ),
     );
 
-    expect(find.text('+90 555 111 22 33 numarasına gönderildi'), findsOneWidget);
+    expect(
+      find.text('+90 555 111 22 33 numarasına gönderildi'),
+      findsOneWidget,
+    );
   });
 
   testWidgets('rakam girilince odak sıradaki kutuya geçer', (tester) async {
@@ -126,9 +141,7 @@ void main() {
     final boxesBottom = tester
         .getBottomLeft(find.byKey(OtpScreen.digitKey(0)))
         .dy;
-    final errorTop = tester
-        .getTopLeft(find.byKey(OtpScreen.errorBannerKey))
-        .dy;
+    final errorTop = tester.getTopLeft(find.byKey(OtpScreen.errorBannerKey)).dy;
     expect(errorTop, greaterThan(boxesBottom));
   });
 
@@ -163,21 +176,68 @@ void main() {
     expect(locationOf(tester), AppRoutes.login);
   });
 
-  for (final size in const [Size(375, 667), Size(430, 932)]) {
-    testWidgets(
-      'taşma yok ${size.width.toInt()}x${size.height.toInt()}',
-      (tester) async {
-        tester.view.physicalSize = size;
-        tester.view.devicePixelRatio = 1.0;
-        addTearDown(tester.view.resetPhysicalSize);
-        addTearDown(tester.view.resetDevicePixelRatio);
+  testWidgets('sahte saat 28 saniye ilerleyince tekrar gönderme aktifleşir', (
+    tester,
+  ) async {
+    var current = DateTime(2026, 1, 1, 12);
+    await pumpOtpWithClock(tester, () => current);
 
-        await pumpOtpRoute(tester);
+    expect(find.text('Kodu tekrar gönder (0:28)'), findsOneWidget);
+    expect(find.byKey(OtpScreen.resendButtonKey), findsNothing);
 
-        expect(tester.takeException(), isNull);
-        expect(tester.getSize(find.byKey(OtpScreen.screenKey)), size);
-      },
+    current = current.add(const Duration(seconds: 28));
+    await tester.pump(const Duration(seconds: 28));
+
+    expect(find.byKey(OtpScreen.resendLabelKey), findsNothing);
+    expect(find.text('Kodu tekrar gönder'), findsOneWidget);
+    final button = tester.widget<TextButton>(
+      find.byKey(OtpScreen.resendButtonKey),
     );
+    expect(button.onPressed, isNotNull);
+  });
+
+  testWidgets('aktif tekrar gönderme bildirir ve sayacı sıfırlar', (
+    tester,
+  ) async {
+    var current = DateTime(2026, 1, 1, 12);
+    await pumpOtpWithClock(tester, () => current);
+
+    current = current.add(const Duration(seconds: 28));
+    await tester.pump(const Duration(seconds: 28));
+
+    await tester.tap(find.byKey(OtpScreen.resendButtonKey));
+    await tester.pump();
+
+    expect(find.byKey(OtpScreen.resendSnackBarKey), findsOneWidget);
+    expect(find.text('Kod tekrar gönderildi'), findsOneWidget);
+    expect(find.text('Kodu tekrar gönder (0:28)'), findsOneWidget);
+    expect(find.byKey(OtpScreen.resendButtonKey), findsNothing);
+  });
+
+  testWidgets('Beni ara demo bildirimi gösterir', (tester) async {
+    await pumpOtpWithClock(tester, () => DateTime(2026, 1, 1, 12));
+
+    await tester.tap(find.byKey(OtpScreen.callButtonKey));
+    await tester.pump();
+
+    expect(find.byKey(OtpScreen.callSnackBarKey), findsOneWidget);
+    expect(find.text('Demo: kod 1234'), findsOneWidget);
+  });
+
+  for (final size in const [Size(375, 667), Size(430, 932)]) {
+    testWidgets('taşma yok ${size.width.toInt()}x${size.height.toInt()}', (
+      tester,
+    ) async {
+      tester.view.physicalSize = size;
+      tester.view.devicePixelRatio = 1.0;
+      addTearDown(tester.view.resetPhysicalSize);
+      addTearDown(tester.view.resetDevicePixelRatio);
+
+      await pumpOtpRoute(tester);
+
+      expect(tester.takeException(), isNull);
+      expect(tester.getSize(find.byKey(OtpScreen.screenKey)), size);
+    });
   }
 
   goldenTest(
@@ -223,13 +283,27 @@ void main() {
       ],
     ),
   );
+  goldenTest(
+    'OTP demo dolu ekran',
+    fileName: '02-otp',
+    builder: () => GoldenTestGroup(
+      columns: 1,
+      children: [
+        GoldenTestScenario(
+          name: 'iPhone SE (375x667)',
+          child: otpGolden(const Size(375, 667), initialCode: '84'),
+        ),
+        GoldenTestScenario(
+          name: 'iPhone 15 Pro Max (430x932)',
+          child: otpGolden(const Size(430, 932), initialCode: '84'),
+        ),
+      ],
+    ),
+  );
 }
 
-Widget otpGolden(
-  Size size, {
-  String? initialCode,
-  bool initialError = false,
-}) {
+Widget otpGolden(Size size, {String? initialCode, bool initialError = false}) {
+  final now = DateTime(2026, 1, 1, 12);
   return SizedBox(
     width: size.width,
     height: size.height,
@@ -243,6 +317,7 @@ Widget otpGolden(
             phone: OtpScreen.fallbackPhone,
             initialCode: initialCode,
             initialError: initialError,
+            now: () => now,
           ),
         ),
       ),
