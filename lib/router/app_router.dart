@@ -14,10 +14,10 @@ GoRouter createAppRouter({required SessionController sessionController}) {
     refreshListenable: sessionController,
     redirect: (context, state) {
       final isAuthRoute = AppRoutes.authPaths.contains(state.matchedLocation);
-      if (sessionController.hasSession && isAuthRoute) {
+      if (sessionController.hasCompletedSession && isAuthRoute) {
         return AppRoutes.session;
       }
-      if (!sessionController.hasSession && !isAuthRoute) {
+      if (!sessionController.hasCompletedSession && !isAuthRoute) {
         return AppRoutes.login;
       }
       return null;
@@ -25,7 +25,8 @@ GoRouter createAppRouter({required SessionController sessionController}) {
     routes: [
       GoRoute(
         path: AppRoutes.login,
-        builder: (context, state) => const PhoneLoginScreen(),
+        builder: (context, state) =>
+            PhoneLoginScreen(sessionController: sessionController),
       ),
       GoRoute(
         path: AppRoutes.otp,

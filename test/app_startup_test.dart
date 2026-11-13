@@ -80,6 +80,41 @@ void main() {
     }
   });
 
+  testWidgets('yalnızca telefon içeren oturum girişte kalır ve OTP rotasına gider', (
+    tester,
+  ) async {
+    const phoneOnlySession = Session(
+      phone: '+905551112233',
+      name: '',
+      surname: '',
+    );
+    final controller = SessionController(FakeSessionStore(phoneOnlySession));
+    await controller.load();
+
+    await tester.pumpWidget(SariApp(sessionController: controller));
+    await tester.pumpAndSettle();
+
+    expect(find.byType(PhoneLoginScreen), findsOneWidget);
+    expect(find.byType(OtpScreen), findsNothing);
+    expect(find.byType(SessionPlaceholderScreen), findsNothing);
+    expect(locationOf(tester), AppRoutes.login);
+
+    final context = tester.element(find.byType(PhoneLoginScreen));
+    GoRouter.of(context).go(AppRoutes.otp);
+    await tester.pumpAndSettle();
+
+    expect(find.byType(OtpScreen), findsOneWidget);
+    expect(find.byType(SessionPlaceholderScreen), findsNothing);
+    expect(locationOf(tester), AppRoutes.otp);
+
+    final otpContext = tester.element(find.byType(OtpScreen));
+    GoRouter.of(otpContext).go(AppRoutes.session);
+    await tester.pumpAndSettle();
+
+    expect(find.byType(SessionPlaceholderScreen), findsNothing);
+    expect(locationOf(tester), AppRoutes.login);
+  });
+
   testWidgets('oturum temizlenip yeniden başlatılınca girişe döner', (
     tester,
   ) async {

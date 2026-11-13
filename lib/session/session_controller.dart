@@ -14,6 +14,15 @@ class SessionController extends ChangeNotifier {
 
   bool get hasSession => _session != null;
 
+  bool get hasCompletedSession {
+    final session = _session;
+    return session != null &&
+        session.phone.isNotEmpty &&
+        session.name.isNotEmpty &&
+        session.surname.isNotEmpty &&
+        session.locationPermission != LocationPermissionStatus.notRequested;
+  }
+
   Future<void> load() async {
     _session = await _store.read();
     notifyListeners();

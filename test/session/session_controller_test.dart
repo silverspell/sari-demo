@@ -69,4 +69,51 @@ void main() {
 
     expect(restarted.hasSession, isFalse);
   });
+
+  test('hasCompletedSession oturum yokken false', () async {
+    final controller = SessionController(FakeSessionStore());
+
+    await controller.load();
+
+    expect(controller.hasSession, isFalse);
+    expect(controller.hasCompletedSession, isFalse);
+  });
+
+  test('hasCompletedSession yalnızca telefon olan oturumda false', () async {
+    final controller = SessionController(
+      FakeSessionStore(
+        const Session(phone: '+905551112233', name: '', surname: ''),
+      ),
+    );
+
+    await controller.load();
+
+    expect(controller.hasSession, isTrue);
+    expect(controller.hasCompletedSession, isFalse);
+  });
+
+  test('hasCompletedSession ad, soyad ve konum izni tamamlanınca true', () async {
+    final controller = SessionController(FakeSessionStore(session));
+
+    await controller.load();
+
+    expect(controller.hasCompletedSession, isTrue);
+  });
+
+  test('hasCompletedSession konum izni istenmemişse false', () async {
+    final controller = SessionController(
+      FakeSessionStore(
+        const Session(
+          phone: '+905551112233',
+          name: 'Şükrü',
+          surname: 'Ağrı',
+        ),
+      ),
+    );
+
+    await controller.load();
+
+    expect(controller.hasSession, isTrue);
+    expect(controller.hasCompletedSession, isFalse);
+  });
 }
