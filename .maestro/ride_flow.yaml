@@ -1,4 +1,5 @@
-# Uçtan uca ilk dilim: telefon girişi -> OTP -> isim -> konum izni -> ana ekran.
+# Uçtan uca demo: telefon girişi -> OTP -> isim -> konum izni -> ana ekran ->
+# hedef seçimi -> rota ve ücret -> çağrı -> sürücü -> yolculuk -> puanlama.
 appId: tr.byteflow.sari
 ---
 - launchApp:
@@ -28,3 +29,29 @@ appId: tr.byteflow.sari
 - assertVisible: 'Merhaba Ayşe'
 - assertVisible: 'Nereye?'
 - assertVisible: 'Taksi çağır'
+- tapOn: 'Nereye?'
+- assertVisible: 'Nereye gitmek istersiniz?'
+- tapOn: 'Kadıköy İskele'
+- assertVisible: 'Rota Ve Ücret Tahmini'
+- assertVisible: 'Sarı Taksi'
+- tapOn: 'Taksi Çağır'
+- assertVisible: 'Taksi Aranıyor'
+- extendedWaitUntil:
+    visible: 'Sürücü Yolda'
+    timeout: 10000
+- extendedWaitUntil:
+    visible: 'Yolculuk Başladı'
+    timeout: 15000
+- extendedWaitUntil:
+    visible: 'Yolculuk Tamamlandı'
+    timeout: 25000
+- assertVisible: 'Yolculuğunu puanla'
+- tapOn: '5 Yıldız'
+- scrollUntilVisible:
+    element:
+      text: 'Bitir'
+    direction: DOWN
+    timeout: 10000
+- tapOn: 'Bitir'
+- assertVisible: 'Merhaba Ayşe'
+- assertVisible: 'Nereye?'
