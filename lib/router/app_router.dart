@@ -12,6 +12,7 @@ import '../screens/location_permission_screen.dart';
 import '../screens/name_entry_screen.dart';
 import '../screens/otp_screen.dart';
 import '../screens/phone_login_screen.dart';
+import '../screens/ride_screen.dart';
 import '../screens/route_fare_screen.dart';
 import '../session/session_controller.dart';
 import 'app_routes.dart';
@@ -24,6 +25,8 @@ GoRouter createAppRouter({
   RideFlowController? rideFlowController,
   TileProvider? tileProvider,
   Duration findingDriverWaitDuration = FindingDriverScreen.defaultWaitDuration,
+  Duration driverArrivalDuration = DriverFoundScreen.defaultArrivalDuration,
+  Duration rideDuration = RideScreen.defaultRideDuration,
 }) {
   final flowController = rideFlowController ?? RideFlowController();
 
@@ -106,6 +109,21 @@ GoRouter createAppRouter({
         builder: (context, state) => DriverFoundScreen(
           flowController: flowController,
           tileProvider: tileProvider,
+          arrivalDuration: driverArrivalDuration,
+          onArrivalComplete: () {
+            if (!context.mounted) {
+              return;
+            }
+            context.pushReplacement(AppRoutes.ride);
+          },
+        ),
+      ),
+      GoRoute(
+        path: AppRoutes.ride,
+        builder: (context, state) => RideScreen(
+          flowController: flowController,
+          tileProvider: tileProvider,
+          rideDuration: rideDuration,
         ),
       ),
     ],

@@ -46,6 +46,7 @@ void main() {
       rideFlowController: flowController,
       tileProvider: FakeTileProvider(),
       findingDriverWaitDuration: const Duration(milliseconds: 100),
+      driverArrivalDuration: const Duration(hours: 1),
     );
 
     await tester.pumpWidget(
@@ -68,7 +69,9 @@ void main() {
     );
 
     await tester.pump(const Duration(milliseconds: 120));
-    await tester.pumpAndSettle();
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 400));
+    await tester.pump(const Duration(milliseconds: 400));
 
     expect(find.byType(DriverFoundScreen), findsOneWidget);
     expect(find.byType(FindingDriverScreen), findsNothing);
