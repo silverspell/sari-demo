@@ -54,7 +54,8 @@ GoRouter createAppRouter({
       ),
       GoRoute(
         path: AppRoutes.session,
-        builder: (context, state) => const SessionPlaceholderScreen(),
+        builder: (context, state) =>
+            SessionPlaceholderScreen(sessionController: sessionController),
       ),
     ],
   );
