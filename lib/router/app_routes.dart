@@ -5,6 +5,7 @@ abstract final class AppRoutes {
   static const locationPermission = '/konum-izni';
   static const home = '/ana-sayfa';
   static const destination = '/nereye';
+  static const routeFare = '/rota-ve-ucret';
 
   static const authPaths = <String>{login, otp, name, locationPermission};
 }

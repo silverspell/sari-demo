@@ -3,12 +3,13 @@ import 'package:go_router/go_router.dart';
 
 import '../data/fake_place.dart';
 import '../data/fake_ride_data.dart';
+import '../rides/ride_flow_controller.dart';
 import '../router/app_routes.dart';
 import '../theme/sari_theme.dart';
 import '../widgets/coming_soon_snack_bar.dart';
 
 class DestinationScreen extends StatefulWidget {
-  const DestinationScreen({super.key});
+  const DestinationScreen({super.key, this.flowController});
 
   static const screenKey = Key('destination-screen');
   static const backButtonKey = Key('destination-back-button');
@@ -27,12 +28,19 @@ class DestinationScreen extends StatefulWidget {
       Key('destination-suggestion-row-$id');
   static Key resultRowKey(String id) => Key('destination-result-row-$id');
 
+  final RideFlowController? flowController;
+
   @override
   State<DestinationScreen> createState() => _DestinationScreenState();
 }
 
 class _DestinationScreenState extends State<DestinationScreen> {
   final _searchController = TextEditingController();
+  RideFlowController? _ownedFlowController;
+
+  RideFlowController get _flowController =>
+      widget.flowController ??
+      (_ownedFlowController ??= RideFlowController());
 
   String get _query => _searchController.text.trim();
 
@@ -49,11 +57,21 @@ class _DestinationScreenState extends State<DestinationScreen> {
   @override
   void dispose() {
     _searchController.dispose();
+    _ownedFlowController?.dispose();
     super.dispose();
   }
 
   void _showComingSoon() {
     showComingSoonSnackBar(context);
+  }
+
+  void _selectDestination(FakePlace place) {
+    _flowController.selectDestination(place);
+    final router = GoRouter.maybeOf(context);
+    if (router == null) {
+      return;
+    }
+    router.push(AppRoutes.routeFare);
   }
 
   void _handleBack() {
@@ -489,7 +507,7 @@ class _DestinationScreenState extends State<DestinationScreen> {
       borderRadius: BorderRadius.circular(SariRadius.sheet),
       child: InkWell(
         borderRadius: BorderRadius.circular(SariRadius.sheet),
-        onTap: _showComingSoon,
+        onTap: () => _selectDestination(place),
         child: Padding(
           padding: const EdgeInsets.all(SariSpacing.sm + SariSpacing.xs),
           child: Row(
@@ -553,7 +571,7 @@ class _DestinationScreenState extends State<DestinationScreen> {
       borderRadius: BorderRadius.circular(SariRadius.sheet),
       child: InkWell(
         borderRadius: BorderRadius.circular(SariRadius.sheet),
-        onTap: _showComingSoon,
+        onTap: () => _selectDestination(place),
         child: Padding(
           padding: const EdgeInsets.all(SariSpacing.sm + SariSpacing.xs),
           child: Row(
@@ -623,7 +641,7 @@ class _DestinationScreenState extends State<DestinationScreen> {
       borderRadius: BorderRadius.circular(SariRadius.sheet),
       child: InkWell(
         borderRadius: BorderRadius.circular(SariRadius.sheet),
-        onTap: _showComingSoon,
+        onTap: () => _selectDestination(place),
         child: Padding(
           padding: const EdgeInsets.all(SariSpacing.sm + SariSpacing.xs),
           child: Row(

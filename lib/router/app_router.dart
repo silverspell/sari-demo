@@ -3,12 +3,14 @@ import 'package:go_router/go_router.dart';
 
 import '../location/location_service.dart';
 import '../permissions/location_permission_service.dart';
+import '../rides/ride_flow_controller.dart';
 import '../screens/destination_screen.dart';
 import '../screens/home_screen.dart';
 import '../screens/location_permission_screen.dart';
 import '../screens/name_entry_screen.dart';
 import '../screens/otp_screen.dart';
 import '../screens/phone_login_screen.dart';
+import '../screens/route_fare_screen.dart';
 import '../session/session_controller.dart';
 import 'app_routes.dart';
 
@@ -17,8 +19,11 @@ GoRouter createAppRouter({
   LocationPermissionService locationPermissionService =
       const PermissionHandlerLocationPermissionService(),
   LocationService locationService = const GeolocatorLocationService(),
+  RideFlowController? rideFlowController,
   TileProvider? tileProvider,
 }) {
+  final flowController = rideFlowController ?? RideFlowController();
+
   return GoRouter(
     initialLocation: AppRoutes.login,
     refreshListenable: sessionController,
@@ -69,7 +74,15 @@ GoRouter createAppRouter({
       ),
       GoRoute(
         path: AppRoutes.destination,
-        builder: (context, state) => const DestinationScreen(),
+        builder: (context, state) =>
+            DestinationScreen(flowController: flowController),
+      ),
+      GoRoute(
+        path: AppRoutes.routeFare,
+        builder: (context, state) => RouteFareScreen(
+          flowController: flowController,
+          tileProvider: tileProvider,
+        ),
       ),
     ],
   );

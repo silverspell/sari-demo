@@ -1,11 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
+import 'package:sari/data/fake_ride_data.dart';
+import 'package:sari/data/ride_class.dart';
 import 'package:sari/main.dart';
+import 'package:sari/rides/ride_flow_controller.dart';
 import 'package:sari/router/app_routes.dart';
 import 'package:sari/screens/destination_screen.dart';
 import 'package:sari/screens/home_screen.dart';
 import 'package:sari/screens/phone_login_screen.dart';
+import 'package:sari/screens/route_fare_screen.dart';
 import 'package:sari/session/location_point.dart';
 import 'package:sari/session/session.dart';
 import 'package:sari/session/session_controller.dart';
@@ -36,12 +40,17 @@ String stateLocationOf(WidgetTester tester, Finder finder) {
 Future<SessionController> pumpApp(
   WidgetTester tester, {
   Session? session = _completedSession,
+  RideFlowController? rideFlowController,
 }) async {
   final controller = SessionController(FakeSessionStore(session));
   await controller.load();
 
   await tester.pumpWidget(
-    SariApp(sessionController: controller, tileProvider: FakeTileProvider()),
+    SariApp(
+      sessionController: controller,
+      tileProvider: FakeTileProvider(),
+      rideFlowController: rideFlowController,
+    ),
   );
   await tester.pumpAndSettle();
 
@@ -123,6 +132,77 @@ void main() {
 
     expect(find.byType(DestinationScreen), findsOneWidget);
     expect(locationOf(tester), AppRoutes.destination);
+    expect(tester.takeException(), isNull);
+  });
+
+  testWidgets('Kadıköy İskele satırı rota ve ücret ekranını açar', (
+    tester,
+  ) async {
+    final flowController = RideFlowController();
+    await pumpApp(tester, rideFlowController: flowController);
+
+    await tester.tap(find.byKey(HomeScreen.searchButtonKey));
+    await tester.pumpAndSettle();
+    await tester.tap(
+      find.byKey(DestinationScreen.historyRowKey('kadikoy-iskele')),
+    );
+    await tester.pumpAndSettle();
+
+    expect(find.byType(RouteFareScreen), findsOneWidget);
+    expect(
+      stateLocationOf(tester, find.byType(RouteFareScreen)),
+      AppRoutes.routeFare,
+    );
+    expect(flowController.destination, FakeRideData.kadikoyIskele);
+    expect(flowController.selectedRideClass, RideClass.sari);
+    expect(find.text('Kadıköy İskele'), findsOneWidget);
+    expect(find.text('12 dk'), findsWidgets);
+    expect(find.text('4,8 km'), findsWidgets);
+    expect(find.text('₺185'), findsOneWidget);
+    expect(find.text('Taksi Çağır'), findsOneWidget);
+    expect(tester.takeException(), isNull);
+  });
+
+  testWidgets('öneri satırı rota ve ücret ekranını açar', (tester) async {
+    final flowController = RideFlowController();
+    await pumpApp(tester, rideFlowController: flowController);
+
+    await tester.tap(find.byKey(HomeScreen.searchButtonKey));
+    await tester.pumpAndSettle();
+    await tester.ensureVisible(
+      find.byKey(DestinationScreen.suggestionRowKey('istanbul-havalimani')),
+    );
+    await tester.pumpAndSettle();
+    await tester.tap(
+      find.byKey(DestinationScreen.suggestionRowKey('istanbul-havalimani')),
+    );
+    await tester.pumpAndSettle();
+
+    expect(find.byType(RouteFareScreen), findsOneWidget);
+    expect(flowController.destination, FakeRideData.istanbulHavalimani);
+    expect(find.text('İstanbul Havalimanı (IST)'), findsOneWidget);
+    expect(tester.takeException(), isNull);
+  });
+
+  testWidgets('sonuç satırı rota ve ücret ekranını açar', (tester) async {
+    final flowController = RideFlowController();
+    await pumpApp(tester, rideFlowController: flowController);
+
+    await tester.tap(find.byKey(HomeScreen.searchButtonKey));
+    await tester.pumpAndSettle();
+    await tester.enterText(
+      find.byKey(DestinationScreen.searchFieldKey),
+      'Taksim',
+    );
+    await tester.pump();
+    await tester.tap(
+      find.byKey(DestinationScreen.resultRowKey('taksim-meydani')),
+    );
+    await tester.pumpAndSettle();
+
+    expect(find.byType(RouteFareScreen), findsOneWidget);
+    expect(flowController.destination, FakeRideData.taksim);
+    expect(find.text('Taksim Meydanı'), findsOneWidget);
     expect(tester.takeException(), isNull);
   });
 }
