@@ -1,0 +1,7 @@
+# Uçtan uca demo akışı: telefon girişi -> OTP -> ana ekran -> taksi çağır ->
+# sürücü bulma -> yolculuk -> puanlama -> Trip History.
+# Adımlar uygulama epic'inde eklenir.
+appId: tr.byteflow.sari
+---
+- launchApp:
+    clearState: true
