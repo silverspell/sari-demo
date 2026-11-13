@@ -81,4 +81,45 @@ abstract final class FakeRideData {
   static const sampleOrigin = DefaultLocations.modaKadikoy;
 
   static const sampleDistanceMeters = 4800;
+
+  static const rideSeed = 1923;
+
+  static const rideSpeedLabel = '42 KM/S • Akıcı';
+
+  static const fakeStartClockMinutes = 14 * 60 + 14;
+
+  static const rideManeuvers = <String>[
+    "350m sonra Moda Caddesi'ne dön",
+    '200m sonra Rıhtım Caddesi çıkışı',
+    "120m sonra İskele Meydanı'na devam",
+    'Hedefe yaklaşıyorsun',
+  ];
+
+  static const _dativeNames = <String, String>{
+    'kadikoy-iskele': "Kadıköy İskele'ye",
+    'taksim-meydani': "Taksim Meydanı'na",
+    'istanbul-havalimani': "İstanbul Havalimanı'na",
+    'sabiha-gokcen': "Sabiha Gökçen Havalimanı'na",
+    'kanyon-avm': "Kanyon AVM'ye",
+    'ev': "Ev'e",
+    'is': "İş'e",
+  };
+
+  static String dativeName(FakePlace place) =>
+      _dativeNames[place.id] ?? _dativeSuffix(place.name);
+
+  static String _dativeSuffix(String name) {
+    if (name.isEmpty) {
+      return name;
+    }
+    const vowels = 'aeıioöuü';
+    const backVowels = 'aıou';
+    final lower = name.toLowerCase();
+    final lastVowel = lower
+        .split('')
+        .lastWhere((letter) => vowels.contains(letter), orElse: () => 'e');
+    final endsWithVowel = vowels.contains(lower[lower.length - 1]);
+    final suffix = backVowels.contains(lastVowel) ? 'a' : 'e';
+    return "$name'${endsWithVowel ? 'y' : ''}$suffix";
+  }
 }

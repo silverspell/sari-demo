@@ -24,6 +24,7 @@ class DriverFoundScreen extends StatefulWidget {
     this.arrivalDuration = defaultArrivalDuration,
     this.animationsEnabled = true,
     this.animationFrame = 0.0,
+    this.onArrivalComplete,
   });
 
   static const defaultArrivalDuration = Duration(seconds: 5);
@@ -62,6 +63,7 @@ class DriverFoundScreen extends StatefulWidget {
   final Duration arrivalDuration;
   final bool animationsEnabled;
   final double animationFrame;
+  final VoidCallback? onArrivalComplete;
 
   @override
   State<DriverFoundScreen> createState() => _DriverFoundScreenState();
@@ -74,6 +76,7 @@ class _DriverFoundScreenState extends State<DriverFoundScreen>
   late final AnimationController _arrivalController;
 
   bool _mapReady = false;
+  bool _arrivalNotified = false;
 
   RideFlowController get _flow => widget.flowController ?? _ownedFlowController;
 
@@ -120,15 +123,30 @@ class _DriverFoundScreenState extends State<DriverFoundScreen>
           .clamp(0.0, 1.0)
           .toDouble();
     }
+    _arrivalController.addStatusListener(_handleArrivalStatus);
     _ensureDestination();
   }
 
   @override
   void dispose() {
+    _arrivalController.removeStatusListener(_handleArrivalStatus);
     _arrivalController.dispose();
     _ownedMapController.dispose();
     _ownedFlowController.dispose();
     super.dispose();
+  }
+
+  void _handleArrivalStatus(AnimationStatus status) {
+    if (status != AnimationStatus.completed || _arrivalNotified) {
+      return;
+    }
+    _arrivalNotified = true;
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) {
+        return;
+      }
+      widget.onArrivalComplete?.call();
+    });
   }
 
   void _ensureDestination() {
