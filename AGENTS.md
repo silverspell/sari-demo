@@ -29,3 +29,38 @@ Sarı, Türkçe bir taksi çağırma demo uygulamasıdır (Flutter, iOS ve Andro
 - Ekranlar taşmaz, kesilmez, üst üste binmez; küçük ve büyük iPhone boyutlarında golden alınır.
 - Ödeme yöntemlerinde kart ekleme formu yoktur.
 - Konum izni verilmezse varsayılan konum kullanılır.
+
+## LoopFlow
+
+### Build and test
+
+- Doğrulama `devcontainer` modunda, `.devcontainer/loopflow/devcontainer.json` (Flutter 3.41.9 imajı) içinde çalışır.
+- Bağımlılıklar: `flutter pub get`.
+- Statik analiz: `flutter analyze`.
+- Testler: `flutter test` (tüm suite). Odaklı: `flutter test test/<dosya>_test.dart`.
+- Golden'lar Linux'ta `flutter test --update-goldens <dosya>` ile güncellenir; macOS'ta atlanır.
+- Komutlar `.loopflow.yml` içindeki `validation.commands` ile birebir aynıdır.
+
+### Coding conventions
+
+- Flutter/Dart 3.11, Material; ekranlar `StatelessWidget`/`StatefulWidget` olarak yazılır.
+- Renk, tipografi, köşe ve boşluk değerleri `lib/theme/sari_theme.dart` üzerinden okunur; ekranlarda sabit renk/font yazılmaz.
+- Uygulama metinleri Türkçedir ve Türkçe karakterler doğru kullanılır.
+- Dosya ve sınıf adlandırması Dart/Flutter standartlarına uyar (`sari_theme.dart`, `SariApp`, `SplashScreen`).
+- Lint kuralları `analysis_options.yaml` içindeki `package:flutter_lints/flutter.yaml` ile belirlenir.
+- Kodda yorum yalnızca gerektiğinde ve Türkçe yazılır.
+
+### Invariants
+
+- Bu bölüm koddan çıkarılmış bir taslaktır; ihlali insan kararı gerektirir.
+- Backend yoktur; giriş, sürücü, rota, ücret ve ödeme verisi uygulama içinde sahtedir.
+- Harita gerçek harita verisiyle çizilir; testler ağa çıkmaz, harita testte yerel/sahte karo kullanır.
+- Konum izni verilmezse varsayılan konum kullanılır.
+- Ödeme yöntemlerinde kart ekleme formu yoktur.
+- Ekranlar taşmaz, kesilmez, üst üste binmez; küçük ve büyük iPhone boyutlarında golden alınır.
+- Golden'lar gerçek fontla (Inter, `assets/fonts/`) ve CI modu kapalı olarak yalnız Linux'ta üretilir.
+- Paket adı `sari`, uygulama kimliği `tr.byteflow.sari` korunur.
+
+### ADRs
+
+- Repoda ADR dizini ya da ADR dosyası bulunmuyor.
