@@ -3,6 +3,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
 import 'package:sari/main.dart';
 import 'package:sari/router/app_routes.dart';
+import 'package:sari/screens/destination_screen.dart';
 import 'package:sari/screens/location_permission_screen.dart';
 import 'package:sari/screens/name_entry_screen.dart';
 import 'package:sari/screens/otp_screen.dart';
@@ -163,5 +164,42 @@ void main() {
     expect(locationOf(tester), AppRoutes.login);
     expect(find.byType(PhoneLoginScreen), findsOneWidget);
     expect(find.byType(HomeScreen), findsNothing);
+  });
+
+  testWidgets('oturum tamamlanmadan /nereye girişe yönlendirir', (
+    tester,
+  ) async {
+    final controller = SessionController(FakeSessionStore());
+    await controller.load();
+
+    await tester.pumpWidget(
+      SariApp(sessionController: controller, tileProvider: FakeTileProvider()),
+    );
+    await tester.pumpAndSettle();
+
+    final context = tester.element(find.byType(PhoneLoginScreen));
+    GoRouter.of(context).go(AppRoutes.destination);
+    await tester.pumpAndSettle();
+
+    expect(find.byType(PhoneLoginScreen), findsOneWidget);
+    expect(find.byType(DestinationScreen), findsNothing);
+    expect(locationOf(tester), AppRoutes.login);
+  });
+
+  testWidgets('tamamlanmış oturum /nereye rotasına erişebilir', (tester) async {
+    final controller = SessionController(FakeSessionStore(seededSession));
+    await controller.load();
+
+    await tester.pumpWidget(
+      SariApp(sessionController: controller, tileProvider: FakeTileProvider()),
+    );
+    await tester.pumpAndSettle();
+
+    final context = tester.element(find.byType(HomeScreen));
+    GoRouter.of(context).go(AppRoutes.destination);
+    await tester.pumpAndSettle();
+
+    expect(find.byType(DestinationScreen), findsOneWidget);
+    expect(locationOf(tester), AppRoutes.destination);
   });
 }

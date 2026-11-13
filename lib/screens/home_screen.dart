@@ -2,6 +2,7 @@ import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
+import 'package:go_router/go_router.dart';
 import 'package:latlong2/latlong.dart';
 
 import '../data/fake_ride_data.dart';
@@ -10,6 +11,7 @@ import '../data/nearby_taxi_generator.dart';
 import '../location/location_service.dart';
 import '../map/sari_map.dart';
 import '../permissions/location_permission_service.dart';
+import '../router/app_routes.dart';
 import '../session/location_point.dart';
 import '../session/session.dart';
 import '../session/session_controller.dart';
@@ -461,7 +463,7 @@ class _HomeScreenState extends State<HomeScreen> {
       child: InkWell(
         key: HomeScreen.searchButtonKey,
         borderRadius: BorderRadius.circular(SariRadius.button),
-        onTap: () => _showComingSoon(context),
+        onTap: () => context.push(AppRoutes.destination),
         child: Container(
           height: 52,
           padding: const EdgeInsets.symmetric(horizontal: 14),
@@ -521,7 +523,7 @@ class _HomeScreenState extends State<HomeScreen> {
       child: InkWell(
         key: HomeScreen.callTaxiButtonKey,
         borderRadius: BorderRadius.circular(SariRadius.button),
-        onTap: () => _showComingSoon(context),
+        onTap: () => context.push(AppRoutes.destination),
         child: Container(
           height: 56,
           padding: const EdgeInsets.symmetric(horizontal: 20),

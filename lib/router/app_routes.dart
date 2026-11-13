@@ -4,6 +4,7 @@ abstract final class AppRoutes {
   static const name = '/isim';
   static const locationPermission = '/konum-izni';
   static const home = '/ana-sayfa';
+  static const destination = '/nereye';
 
   static const authPaths = <String>{login, otp, name, locationPermission};
 }
