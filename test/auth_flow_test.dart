@@ -7,13 +7,14 @@ import 'package:sari/screens/location_permission_screen.dart';
 import 'package:sari/screens/name_entry_screen.dart';
 import 'package:sari/screens/otp_screen.dart';
 import 'package:sari/screens/phone_login_screen.dart';
-import 'package:sari/screens/session_placeholder_screen.dart';
+import 'package:sari/screens/home_screen.dart';
 import 'package:sari/session/location_point.dart';
 import 'package:sari/session/session.dart';
 import 'package:sari/session/session_controller.dart';
 
 import 'support/fake_location_permission_service.dart';
 import 'support/fake_session_store.dart';
+import 'support/fake_tile_provider.dart';
 
 const _phone = '+905551234567';
 
@@ -38,9 +39,7 @@ Future<void> settleAfterOtp(WidgetTester tester) async {
 }
 
 void main() {
-  testWidgets('telefondan oturum yer tutucusuna uçtan uca akış', (
-    tester,
-  ) async {
+  testWidgets('telefondan ana ekrana uçtan uca akış', (tester) async {
     tester.view.physicalSize = const Size(430, 932);
     tester.view.devicePixelRatio = 1.0;
     addTearDown(tester.view.resetPhysicalSize);
@@ -55,6 +54,7 @@ void main() {
       SariApp(
         sessionController: controller,
         locationPermissionService: permissionService,
+        tileProvider: FakeTileProvider(),
       ),
     );
     await tester.pumpAndSettle();
@@ -124,27 +124,16 @@ void main() {
     );
     expect(controller.session?.location, DefaultLocations.modaKadikoy);
     expect(controller.hasCompletedSession, isTrue);
-    expect(find.byType(SessionPlaceholderScreen), findsOneWidget);
-    expect(locationOf(tester), AppRoutes.session);
+    expect(find.byType(HomeScreen), findsOneWidget);
+    expect(locationOf(tester), AppRoutes.home);
 
-    expect(find.text('Merhaba, Ayşe Yılmaz'), findsOneWidget);
+    expect(find.text('Merhaba Ayşe'), findsOneWidget);
     final greeting = tester.widget<Text>(
-      find.byKey(SessionPlaceholderScreen.greetingTextKey),
+      find.byKey(HomeScreen.greetingTextKey),
     );
-    expect(greeting.data, 'Merhaba, Ayşe Yılmaz');
-
-    await tester.ensureVisible(
-      find.byKey(SessionPlaceholderScreen.logoutButtonKey),
-    );
-    await tester.pumpAndSettle();
-    await tester.tap(find.byKey(SessionPlaceholderScreen.logoutButtonKey));
-    await tester.pumpAndSettle();
-
-    expect(controller.session, isNull);
-    expect(store.session, isNull);
-    expect(find.byType(PhoneLoginScreen), findsOneWidget);
-    expect(find.byType(SessionPlaceholderScreen), findsNothing);
-    expect(locationOf(tester), AppRoutes.login);
+    expect(greeting.data, 'Merhaba Ayşe');
+    expect(find.text('Nereye?'), findsOneWidget);
+    expect(find.text('Taksi çağır'), findsOneWidget);
     expect(tester.takeException(), isNull);
   });
 }

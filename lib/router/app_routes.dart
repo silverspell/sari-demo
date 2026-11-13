@@ -3,7 +3,7 @@ abstract final class AppRoutes {
   static const otp = '/dogrulama';
   static const name = '/isim';
   static const locationPermission = '/konum-izni';
-  static const session = '/oturum';
+  static const home = '/ana-sayfa';
 
   static const authPaths = <String>{login, otp, name, locationPermission};
 }
