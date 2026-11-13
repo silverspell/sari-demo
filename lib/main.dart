@@ -5,6 +5,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 import 'location/location_service.dart';
 import 'permissions/location_permission_service.dart';
+import 'rides/ride_flow_controller.dart';
 import 'router/app_router.dart';
 import 'session/session_controller.dart';
 import 'session/shared_preferences_session_store.dart';
@@ -27,12 +28,14 @@ class SariApp extends StatefulWidget {
     this.locationPermissionService =
         const PermissionHandlerLocationPermissionService(),
     this.locationService = const GeolocatorLocationService(),
+    this.rideFlowController,
     this.tileProvider,
   });
 
   final SessionController sessionController;
   final LocationPermissionService locationPermissionService;
   final LocationService locationService;
+  final RideFlowController? rideFlowController;
   final TileProvider? tileProvider;
 
   @override
@@ -41,23 +44,43 @@ class SariApp extends StatefulWidget {
 
 class _SariAppState extends State<SariApp> {
   late GoRouter _router;
+  RideFlowController? _ownedRideFlowController;
+
+  RideFlowController get _rideFlowController =>
+      widget.rideFlowController ??
+      (_ownedRideFlowController ??= RideFlowController());
 
   @override
   void initState() {
     super.initState();
+    _ensureRideFlowController();
     _router = _createRouter();
   }
 
   @override
   void didUpdateWidget(covariant SariApp oldWidget) {
     super.didUpdateWidget(oldWidget);
-    if (oldWidget.sessionController != widget.sessionController ||
+    final flowChanged =
+        oldWidget.rideFlowController != widget.rideFlowController;
+    if (flowChanged ||
+        oldWidget.sessionController != widget.sessionController ||
         oldWidget.locationPermissionService !=
             widget.locationPermissionService ||
         oldWidget.locationService != widget.locationService ||
         oldWidget.tileProvider != widget.tileProvider) {
+      if (flowChanged) {
+        _ownedRideFlowController?.dispose();
+        _ownedRideFlowController = null;
+        _ensureRideFlowController();
+      }
       _router.dispose();
       _router = _createRouter();
+    }
+  }
+
+  void _ensureRideFlowController() {
+    if (widget.rideFlowController == null) {
+      _ownedRideFlowController ??= RideFlowController();
     }
   }
 
@@ -65,12 +88,14 @@ class _SariAppState extends State<SariApp> {
     sessionController: widget.sessionController,
     locationPermissionService: widget.locationPermissionService,
     locationService: widget.locationService,
+    rideFlowController: _rideFlowController,
     tileProvider: widget.tileProvider,
   );
 
   @override
   void dispose() {
     _router.dispose();
+    _ownedRideFlowController?.dispose();
     super.dispose();
   }
 

@@ -1,11 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:sari/data/fake_ride_data.dart';
+import 'package:sari/rides/ride_flow_controller.dart';
 import 'package:sari/screens/destination_screen.dart';
 import 'package:sari/theme/sari_theme.dart';
 
 Future<void> pumpDestination(
   WidgetTester tester, {
   Size size = const Size(430, 932),
+  RideFlowController? flowController,
 }) async {
   tester.view.physicalSize = size;
   tester.view.devicePixelRatio = 1.0;
@@ -13,7 +16,10 @@ Future<void> pumpDestination(
   addTearDown(tester.view.resetDevicePixelRatio);
 
   await tester.pumpWidget(
-    MaterialApp(theme: buildSariTheme(), home: const DestinationScreen()),
+    MaterialApp(
+      theme: buildSariTheme(),
+      home: DestinationScreen(flowController: flowController),
+    ),
   );
   await tester.pumpAndSettle();
 }
@@ -169,18 +175,51 @@ void main() {
     expect(tester.takeException(), isNull);
   });
 
-  testWidgets('yer satırına dokunmak şimdilik Yakında gösterir', (
-    tester,
-  ) async {
-    await pumpDestination(tester);
+  testWidgets('yer satırına dokunmak hedefi akışa yazar', (tester) async {
+    final flowController = RideFlowController();
+    await pumpDestination(tester, flowController: flowController);
 
     await tester.tap(
       find.byKey(DestinationScreen.historyRowKey('kadikoy-iskele')),
     );
     await tester.pump();
 
-    expect(find.text('Yakında'), findsOneWidget);
-    await expectSnackBarToClear(tester);
+    expect(flowController.destination, FakeRideData.kadikoyIskele);
+    expect(find.text('Yakında'), findsNothing);
+    expect(find.byKey(DestinationScreen.screenKey), findsOneWidget);
+    expect(tester.takeException(), isNull);
+  });
+
+  testWidgets('öneri ve sonuç satırları da hedefi akışa yazar', (
+    tester,
+  ) async {
+    final flowController = RideFlowController();
+    await pumpDestination(tester, flowController: flowController);
+
+    await tester.ensureVisible(
+      find.byKey(DestinationScreen.suggestionRowKey('kanyon-avm')),
+    );
+    await tester.pumpAndSettle();
+    await tester.tap(
+      find.byKey(DestinationScreen.suggestionRowKey('kanyon-avm')),
+    );
+    await tester.pump();
+
+    expect(flowController.destination, FakeRideData.kanyonAvm);
+    expect(find.text('Yakında'), findsNothing);
+
+    await tester.enterText(
+      find.byKey(DestinationScreen.searchFieldKey),
+      'Taksim',
+    );
+    await tester.pump();
+    await tester.tap(
+      find.byKey(DestinationScreen.resultRowKey('taksim-meydani')),
+    );
+    await tester.pump();
+
+    expect(flowController.destination, FakeRideData.taksim);
+    expect(find.text('Yakında'), findsNothing);
     expect(tester.takeException(), isNull);
   });
 
