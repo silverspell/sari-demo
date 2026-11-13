@@ -1,3 +1,5 @@
+import 'location_point.dart';
+
 enum LocationPermissionStatus { notRequested, granted, denied }
 
 class Session {
@@ -6,6 +8,7 @@ class Session {
     required this.name,
     required this.surname,
     this.locationPermission = LocationPermissionStatus.notRequested,
+    this.location,
   });
 
   factory Session.fromJson(Map<String, dynamic> json) {
@@ -20,6 +23,7 @@ class Session {
       name: json['name'] as String? ?? '',
       surname: json['surname'] as String? ?? '',
       locationPermission: locationPermission,
+      location: LocationPoint.tryParse(json['location']),
     );
   }
 
@@ -27,12 +31,14 @@ class Session {
   final String name;
   final String surname;
   final LocationPermissionStatus locationPermission;
+  final LocationPoint? location;
 
   Map<String, dynamic> toJson() => {
     'phone': phone,
     'name': name,
     'surname': surname,
     'locationPermission': locationPermission.name,
+    if (location != null) 'location': location!.toJson(),
   };
 
   Session copyWith({
@@ -40,11 +46,13 @@ class Session {
     String? name,
     String? surname,
     LocationPermissionStatus? locationPermission,
+    LocationPoint? location,
   }) => Session(
     phone: phone ?? this.phone,
     name: name ?? this.name,
     surname: surname ?? this.surname,
     locationPermission: locationPermission ?? this.locationPermission,
+    location: location ?? this.location,
   );
 
   @override
@@ -54,8 +62,10 @@ class Session {
           other.phone == phone &&
           other.name == name &&
           other.surname == surname &&
-          other.locationPermission == locationPermission;
+          other.locationPermission == locationPermission &&
+          other.location == location;
 
   @override
-  int get hashCode => Object.hash(phone, name, surname, locationPermission);
+  int get hashCode =>
+      Object.hash(phone, name, surname, locationPermission, location);
 }

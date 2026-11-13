@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+import 'permissions/location_permission_service.dart';
 import 'router/app_router.dart';
 import 'session/session_controller.dart';
 import 'session/shared_preferences_session_store.dart';
@@ -18,9 +19,15 @@ Future<void> main() async {
 }
 
 class SariApp extends StatefulWidget {
-  const SariApp({super.key, required this.sessionController});
+  const SariApp({
+    super.key,
+    required this.sessionController,
+    this.locationPermissionService =
+        const PermissionHandlerLocationPermissionService(),
+  });
 
   final SessionController sessionController;
+  final LocationPermissionService locationPermissionService;
 
   @override
   State<SariApp> createState() => _SariAppState();
@@ -32,17 +39,24 @@ class _SariAppState extends State<SariApp> {
   @override
   void initState() {
     super.initState();
-    _router = createAppRouter(sessionController: widget.sessionController);
+    _router = _createRouter();
   }
 
   @override
   void didUpdateWidget(covariant SariApp oldWidget) {
     super.didUpdateWidget(oldWidget);
-    if (oldWidget.sessionController != widget.sessionController) {
+    if (oldWidget.sessionController != widget.sessionController ||
+        oldWidget.locationPermissionService !=
+            widget.locationPermissionService) {
       _router.dispose();
-      _router = createAppRouter(sessionController: widget.sessionController);
+      _router = _createRouter();
     }
   }
+
+  GoRouter _createRouter() => createAppRouter(
+    sessionController: widget.sessionController,
+    locationPermissionService: widget.locationPermissionService,
+  );
 
   @override
   void dispose() {
