@@ -20,6 +20,7 @@ class LocationPermissionScreen extends StatefulWidget {
   static const screenKey = Key('location-permission-screen');
   static const allowButtonKey = Key('location-permission-allow-button');
   static const notNowButtonKey = Key('location-permission-not-now-button');
+  static const radarOrbitKey = Key('location-permission-radar-orbit');
 
   final SessionController sessionController;
   final LocationPermissionService permissionService;
@@ -227,6 +228,7 @@ class _LocationPermissionScreenState extends State<LocationPermissionScreen> {
             size: targetSize,
             color: theme.colorScheme.primaryContainer.withValues(alpha: 0.7),
           ),
+          _buildOrbitGraphic(theme, compact: compact),
           _buildPin(theme),
           Positioned(
             bottom: compact ? SariSpacing.xs : SariSpacing.sm,
@@ -243,6 +245,22 @@ class _LocationPermissionScreenState extends State<LocationPermissionScreen> {
       width: size,
       height: size,
       decoration: BoxDecoration(color: color, shape: BoxShape.circle),
+    );
+  }
+
+  Widget _buildOrbitGraphic(ThemeData theme, {required bool compact}) {
+    return Opacity(
+      key: LocationPermissionScreen.radarOrbitKey,
+      opacity: 0.4,
+      child: SizedBox.square(
+        dimension: compact ? 144 : 220,
+        child: CustomPaint(
+          painter: _RadarOrbitPainter(
+            primaryColor: theme.colorScheme.primary,
+            onSurfaceColor: theme.colorScheme.onSurface,
+          ),
+        ),
+      ),
     );
   }
 
@@ -502,4 +520,127 @@ class _PinTrianglePainter extends CustomPainter {
   @override
   bool shouldRepaint(covariant _PinTrianglePainter oldDelegate) =>
       oldDelegate.color != color;
+}
+
+class _RadarOrbitPainter extends CustomPainter {
+  const _RadarOrbitPainter({
+    required this.primaryColor,
+    required this.onSurfaceColor,
+  });
+
+  final Color primaryColor;
+  final Color onSurfaceColor;
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final scale = size.width / 220;
+
+    final primaryOrbit = Path()
+      ..moveTo(20 * scale, 70 * scale)
+      ..cubicTo(
+        60 * scale,
+        65 * scale,
+        90 * scale,
+        90 * scale,
+        120 * scale,
+        85 * scale,
+      )
+      ..cubicTo(
+        160 * scale,
+        80 * scale,
+        180 * scale,
+        110 * scale,
+        210 * scale,
+        110 * scale,
+      );
+
+    final surfaceOrbit = Path()
+      ..moveTo(40 * scale, 180 * scale)
+      ..cubicTo(
+        70 * scale,
+        160 * scale,
+        110 * scale,
+        170 * scale,
+        140 * scale,
+        140 * scale,
+      )
+      ..cubicTo(
+        170 * scale,
+        110 * scale,
+        180 * scale,
+        60 * scale,
+        200 * scale,
+        40 * scale,
+      );
+
+    _drawDashedPath(
+      canvas,
+      primaryOrbit,
+      Paint()
+        ..color = primaryColor.withValues(alpha: 0.5)
+        ..strokeWidth = 2 * scale
+        ..strokeCap = StrokeCap.butt
+        ..style = PaintingStyle.stroke,
+      dashLength: 4 * scale,
+      gapLength: 4 * scale,
+    );
+
+    _drawDashedPath(
+      canvas,
+      surfaceOrbit,
+      Paint()
+        ..color = onSurfaceColor.withValues(alpha: 0.3)
+        ..strokeWidth = 1.5 * scale
+        ..strokeCap = StrokeCap.butt
+        ..style = PaintingStyle.stroke,
+      dashLength: 3 * scale,
+      gapLength: 3 * scale,
+    );
+
+    canvas.drawCircle(
+      Offset(50 * scale, 70 * scale),
+      3 * scale,
+      Paint()..color = primaryColor,
+    );
+    canvas.drawCircle(
+      Offset(170 * scale, 130 * scale),
+      3 * scale,
+      Paint()..color = onSurfaceColor,
+    );
+  }
+
+  void _drawDashedPath(
+    Canvas canvas,
+    Path path,
+    Paint paint, {
+    required double dashLength,
+    required double gapLength,
+  }) {
+    if (dashLength <= 0 || gapLength < 0) {
+      return;
+    }
+
+    for (final metric in path.computeMetrics()) {
+      final length = metric.length;
+      if (length <= 0) {
+        continue;
+      }
+
+      var distance = 0.0;
+      while (distance < length) {
+        final end = distance + dashLength < length
+            ? distance + dashLength
+            : length;
+        if (end > distance) {
+          canvas.drawPath(metric.extractPath(distance, end), paint);
+        }
+        distance = end + gapLength;
+      }
+    }
+  }
+
+  @override
+  bool shouldRepaint(covariant _RadarOrbitPainter oldDelegate) =>
+      oldDelegate.primaryColor != primaryColor ||
+      oldDelegate.onSurfaceColor != onSurfaceColor;
 }
