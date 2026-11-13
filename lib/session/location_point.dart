@@ -41,8 +41,8 @@ class LocationPoint {
 }
 
 abstract final class DefaultLocations {
-  static const taksimMeydani = LocationPoint(
-    latitude: 41.0369,
-    longitude: 28.9850,
+  static const modaKadikoy = LocationPoint(
+    latitude: 40.9812,
+    longitude: 29.0255,
   );
 }

@@ -38,22 +38,22 @@ void main() {
     expect(preferences.getString('sari.session'), contains('Şükrü'));
   });
 
-  test('Taksim koordinatları yazılıp geri okunur', () async {
+  test('Moda koordinatları yazılıp geri okunur', () async {
     final store = await createStore();
     const session = Session(
       phone: '+905551112233',
       name: 'Şükrü',
       surname: 'Ağrı',
       locationPermission: LocationPermissionStatus.denied,
-      location: DefaultLocations.taksimMeydani,
+      location: DefaultLocations.modaKadikoy,
     );
 
     await store.write(session);
 
     final restored = await store.read();
     expect(restored, session);
-    expect(restored?.location?.latitude, 41.0369);
-    expect(restored?.location?.longitude, 28.9850);
+    expect(restored?.location?.latitude, 40.9812);
+    expect(restored?.location?.longitude, 29.0255);
   });
 
   test('clear oturumu siler', () async {

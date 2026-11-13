@@ -1,5 +1,6 @@
 import 'package:go_router/go_router.dart';
 
+import '../location/location_service.dart';
 import '../permissions/location_permission_service.dart';
 import '../screens/location_permission_screen.dart';
 import '../screens/name_entry_screen.dart';
@@ -13,6 +14,7 @@ GoRouter createAppRouter({
   required SessionController sessionController,
   LocationPermissionService locationPermissionService =
       const PermissionHandlerLocationPermissionService(),
+  LocationService locationService = const GeolocatorLocationService(),
 }) {
   return GoRouter(
     initialLocation: AppRoutes.login,
@@ -50,6 +52,7 @@ GoRouter createAppRouter({
         builder: (context, state) => LocationPermissionScreen(
           sessionController: sessionController,
           permissionService: locationPermissionService,
+          locationService: locationService,
         ),
       ),
       GoRoute(
