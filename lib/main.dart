@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+import 'location/location_service.dart';
 import 'permissions/location_permission_service.dart';
 import 'router/app_router.dart';
 import 'session/session_controller.dart';
@@ -24,10 +25,12 @@ class SariApp extends StatefulWidget {
     required this.sessionController,
     this.locationPermissionService =
         const PermissionHandlerLocationPermissionService(),
+    this.locationService = const GeolocatorLocationService(),
   });
 
   final SessionController sessionController;
   final LocationPermissionService locationPermissionService;
+  final LocationService locationService;
 
   @override
   State<SariApp> createState() => _SariAppState();
@@ -47,7 +50,8 @@ class _SariAppState extends State<SariApp> {
     super.didUpdateWidget(oldWidget);
     if (oldWidget.sessionController != widget.sessionController ||
         oldWidget.locationPermissionService !=
-            widget.locationPermissionService) {
+            widget.locationPermissionService ||
+        oldWidget.locationService != widget.locationService) {
       _router.dispose();
       _router = _createRouter();
     }
@@ -56,6 +60,7 @@ class _SariAppState extends State<SariApp> {
   GoRouter _createRouter() => createAppRouter(
     sessionController: widget.sessionController,
     locationPermissionService: widget.locationPermissionService,
+    locationService: widget.locationService,
   );
 
   @override

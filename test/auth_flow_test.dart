@@ -122,7 +122,7 @@ void main() {
       controller.session?.locationPermission,
       LocationPermissionStatus.denied,
     );
-    expect(controller.session?.location, DefaultLocations.taksimMeydani);
+    expect(controller.session?.location, DefaultLocations.modaKadikoy);
     expect(controller.hasCompletedSession, isTrue);
     expect(find.byType(SessionPlaceholderScreen), findsOneWidget);
     expect(locationOf(tester), AppRoutes.session);

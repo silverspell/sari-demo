@@ -66,13 +66,13 @@ void main() {
         name: 'Şükrü',
         surname: 'Ağrı',
         locationPermission: LocationPermissionStatus.granted,
-        location: DefaultLocations.taksimMeydani,
+        location: DefaultLocations.modaKadikoy,
       );
 
       final restored = Session.fromJson(session.toJson());
 
       expect(restored, session);
-      expect(restored.location, DefaultLocations.taksimMeydani);
+      expect(restored.location, DefaultLocations.modaKadikoy);
     });
 
     test('eksik konum null olur', () {
@@ -92,7 +92,7 @@ void main() {
         'name': 'Şükrü',
         'surname': 'Ağrı',
         'locationPermission': 'granted',
-        'location': {'latitude': 'geçersiz', 'longitude': 28.9850},
+        'location': {'latitude': 'geçersiz', 'longitude': 29.0255},
       });
 
       expect(session.location, isNull);
@@ -119,14 +119,14 @@ void main() {
 
       final updated = session.copyWith(
         locationPermission: LocationPermissionStatus.denied,
-        location: DefaultLocations.taksimMeydani,
+        location: DefaultLocations.modaKadikoy,
       );
 
       expect(updated.phone, session.phone);
       expect(updated.name, session.name);
       expect(updated.surname, session.surname);
       expect(updated.locationPermission, LocationPermissionStatus.denied);
-      expect(updated.location, DefaultLocations.taksimMeydani);
+      expect(updated.location, DefaultLocations.modaKadikoy);
     });
 
     test('eşitlik konumu da kapsar', () {
@@ -139,7 +139,7 @@ void main() {
         phone: '+905551112233',
         name: 'Şükrü',
         surname: 'Ağrı',
-        location: DefaultLocations.taksimMeydani,
+        location: DefaultLocations.modaKadikoy,
       );
 
       expect(withoutLocation, isNot(withLocation));

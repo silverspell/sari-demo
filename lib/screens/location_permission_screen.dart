@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
+import '../location/location_service.dart';
 import '../permissions/location_permission_service.dart';
 import '../router/app_routes.dart';
 import '../session/location_point.dart';
@@ -13,6 +14,7 @@ class LocationPermissionScreen extends StatefulWidget {
     super.key,
     required this.sessionController,
     this.permissionService = const PermissionHandlerLocationPermissionService(),
+    this.locationService = const GeolocatorLocationService(),
   });
 
   static const screenKey = Key('location-permission-screen');
@@ -21,6 +23,7 @@ class LocationPermissionScreen extends StatefulWidget {
 
   final SessionController sessionController;
   final LocationPermissionService permissionService;
+  final LocationService locationService;
 
   @override
   State<LocationPermissionScreen> createState() =>
@@ -30,19 +33,19 @@ class LocationPermissionScreen extends StatefulWidget {
 class _LocationPermissionScreenState extends State<LocationPermissionScreen> {
   bool _submitting = false;
 
-  Future<void> _persist(LocationPermissionStatus status) async {
+  Future<void> _persist(
+    LocationPermissionStatus status,
+    LocationPoint location,
+  ) async {
     final current = widget.sessionController.session;
     final session = current != null
-        ? current.copyWith(
-            locationPermission: status,
-            location: DefaultLocations.taksimMeydani,
-          )
+        ? current.copyWith(locationPermission: status, location: location)
         : Session(
             phone: '',
             name: '',
             surname: '',
             locationPermission: status,
-            location: DefaultLocations.taksimMeydani,
+            location: location,
           );
 
     await widget.sessionController.save(session);
@@ -55,15 +58,25 @@ class _LocationPermissionScreenState extends State<LocationPermissionScreen> {
     setState(() => _submitting = true);
 
     final decision = await widget.permissionService.requestPermission();
+
+    var status = LocationPermissionStatus.denied;
+    var location = DefaultLocations.modaKadikoy;
+    if (decision == LocationPermissionDecision.granted) {
+      status = LocationPermissionStatus.granted;
+      try {
+        final currentLocation = await widget.locationService.currentLocation();
+        if (currentLocation != null) {
+          location = currentLocation;
+        }
+      } catch (_) {
+        location = DefaultLocations.modaKadikoy;
+      }
+    }
     if (!mounted) {
       return;
     }
 
-    await _persist(
-      decision == LocationPermissionDecision.granted
-          ? LocationPermissionStatus.granted
-          : LocationPermissionStatus.denied,
-    );
+    await _persist(status, location);
     if (!mounted) {
       return;
     }
@@ -77,7 +90,10 @@ class _LocationPermissionScreenState extends State<LocationPermissionScreen> {
     }
     setState(() => _submitting = true);
 
-    await _persist(LocationPermissionStatus.denied);
+    await _persist(
+      LocationPermissionStatus.denied,
+      DefaultLocations.modaKadikoy,
+    );
     if (!mounted) {
       return;
     }
