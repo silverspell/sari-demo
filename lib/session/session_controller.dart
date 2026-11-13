@@ -19,7 +19,6 @@ class SessionController extends ChangeNotifier {
     return session != null &&
         session.phone.isNotEmpty &&
         session.name.isNotEmpty &&
-        session.surname.isNotEmpty &&
         session.locationPermission != LocationPermissionStatus.notRequested;
   }
 

@@ -92,7 +92,7 @@ void main() {
     expect(controller.hasCompletedSession, isFalse);
   });
 
-  test('hasCompletedSession ad, soyad ve konum izni tamamlanınca true', () async {
+  test('hasCompletedSession ad ve konum izni tamamlanınca true', () async {
     final controller = SessionController(FakeSessionStore(session));
 
     await controller.load();
@@ -100,14 +100,44 @@ void main() {
     expect(controller.hasCompletedSession, isTrue);
   });
 
-  test('hasCompletedSession konum izni istenmemişse false', () async {
+  test('hasCompletedSession boş soyadla tamamlanmış sayılır', () async {
     final controller = SessionController(
       FakeSessionStore(
         const Session(
           phone: '+905551112233',
           name: 'Şükrü',
-          surname: 'Ağrı',
+          surname: '',
+          locationPermission: LocationPermissionStatus.granted,
         ),
+      ),
+    );
+
+    await controller.load();
+
+    expect(controller.hasCompletedSession, isTrue);
+  });
+
+  test('hasCompletedSession boş adla tamamlanmış sayılmaz', () async {
+    final controller = SessionController(
+      FakeSessionStore(
+        const Session(
+          phone: '+905551112233',
+          name: '',
+          surname: 'Ağrı',
+          locationPermission: LocationPermissionStatus.granted,
+        ),
+      ),
+    );
+
+    await controller.load();
+
+    expect(controller.hasCompletedSession, isFalse);
+  });
+
+  test('hasCompletedSession konum izni istenmemişse false', () async {
+    final controller = SessionController(
+      FakeSessionStore(
+        const Session(phone: '+905551112233', name: 'Şükrü', surname: 'Ağrı'),
       ),
     );
 
