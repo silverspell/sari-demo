@@ -15,7 +15,8 @@ import 'package:sari/theme/sari_theme.dart';
 
 import 'support/fake_session_store.dart';
 
-const _subtitle = '+90 532 123 45 67 numarasına gönderildi';
+const _subtitle = '+90 532 123 45 67 numarasına gönderdik';
+const _digitSize = Size(64, 72);
 
 String locationOf(WidgetTester tester) {
   final context = tester.element(find.byType(Scaffold).first);
@@ -40,6 +41,63 @@ Future<void> pumpOtpRoute(WidgetTester tester) async {
 
 TextField digitBox(WidgetTester tester, int index) =>
     tester.widget<TextField>(find.byKey(OtpScreen.digitKey(index)));
+
+InputDecoration digitDecoration(WidgetTester tester, int index) =>
+    digitBox(tester, index).decoration!;
+
+void expectDigitSizes(WidgetTester tester) {
+  for (var i = 0; i < 4; i++) {
+    expect(
+      tester.getSize(find.byKey(OtpScreen.digitKey(i))),
+      _digitSize,
+      reason: '${i + 1}. kutu 64x72 olmalı',
+    );
+  }
+}
+
+void expectNormalDigitStyle(WidgetTester tester) {
+  for (var i = 0; i < 4; i++) {
+    final decoration = digitDecoration(tester, i);
+    expect(decoration.filled, isTrue);
+    expect(decoration.fillColor, SariColors.surface);
+    final enabledBorder = decoration.enabledBorder! as OutlineInputBorder;
+    expect(
+      enabledBorder.borderRadius,
+      BorderRadius.circular(SariRadius.button),
+    );
+    expect(enabledBorder.borderSide.color, SariColors.border);
+    final focusedBorder = decoration.focusedBorder! as OutlineInputBorder;
+    expect(
+      focusedBorder.borderRadius,
+      BorderRadius.circular(SariRadius.button),
+    );
+    expect(focusedBorder.borderSide.color, SariColors.ink);
+  }
+}
+
+void expectErrorDigitStyle(WidgetTester tester) {
+  final theme = buildSariTheme();
+  final expectedFill = theme.colorScheme.errorContainer.withValues(alpha: 0.4);
+  for (var i = 0; i < 4; i++) {
+    final decoration = digitDecoration(tester, i);
+    expect(decoration.filled, isTrue);
+    expect(decoration.fillColor, expectedFill);
+    final borders = [
+      decoration.border,
+      decoration.enabledBorder,
+      decoration.focusedBorder,
+      decoration.disabledBorder,
+      decoration.errorBorder,
+      decoration.focusedErrorBorder,
+    ].whereType<OutlineInputBorder>();
+    expect(borders, hasLength(6));
+    for (final border in borders) {
+      expect(border.borderRadius, BorderRadius.circular(SariRadius.button));
+      expect(border.borderSide.style, BorderStyle.none);
+      expect(border.borderSide.width, 0);
+    }
+  }
+}
 
 Future<void> enterCode(WidgetTester tester, String code) async {
   for (var i = 0; i < code.length; i++) {
@@ -74,6 +132,9 @@ void main() {
     expect(find.text('Mesaj ulaşmadı mı?'), findsOneWidget);
     expect(find.text('Beni ara'), findsOneWidget);
     expect(find.text('SMS ile Doğrulama'), findsOneWidget);
+
+    expectDigitSizes(tester);
+    expectNormalDigitStyle(tester);
   });
 
   testWidgets('oturum telefonu alt başlıkta biçimlendirilir', (tester) async {
@@ -85,7 +146,7 @@ void main() {
     );
 
     expect(
-      find.text('+90 555 111 22 33 numarasına gönderildi'),
+      find.text('+90 555 111 22 33 numarasına gönderdik'),
       findsOneWidget,
     );
   });
@@ -141,6 +202,9 @@ void main() {
       expect(digitBox(tester, i).style?.color, SariColors.critical);
     }
 
+    expectDigitSizes(tester);
+    expectErrorDigitStyle(tester);
+
     final boxesBottom = tester
         .getBottomLeft(find.byKey(OtpScreen.digitKey(0)))
         .dy;
@@ -167,6 +231,9 @@ void main() {
     expect(find.byKey(OtpScreen.errorBannerKey), findsNothing);
     expect(find.text('Kod hatalı, tekrar dene.'), findsNothing);
     expect(digitBox(tester, 0).focusNode?.hasFocus, isTrue);
+
+    expectDigitSizes(tester);
+    expectNormalDigitStyle(tester);
   });
 
   testWidgets('geri dönüş telefon giriş ekranına gider', (tester) async {
