@@ -15,6 +15,7 @@ import '../router/app_routes.dart';
 import '../session/location_point.dart';
 import '../theme/sari_theme.dart';
 import '../widgets/coming_soon_snack_bar.dart';
+import 'finding_driver_screen.dart';
 
 class RouteFareScreen extends StatefulWidget {
   const RouteFareScreen({
@@ -165,6 +166,22 @@ class _RouteFareScreenState extends State<RouteFareScreen> {
 
   void _showComingSoon() {
     showComingSoonSnackBar(context);
+  }
+
+  void _handleCallTaxi() {
+    final router = GoRouter.maybeOf(context);
+    if (router != null) {
+      context.push(AppRoutes.findingDriver);
+      return;
+    }
+    Navigator.of(context).push(
+      MaterialPageRoute<void>(
+        builder: (_) => FindingDriverScreen(
+          flowController: _flow,
+          tileProvider: widget.tileProvider,
+        ),
+      ),
+    );
   }
 
   @override
@@ -793,7 +810,7 @@ class _RouteFareScreenState extends State<RouteFareScreen> {
       child: InkWell(
         key: RouteFareScreen.callButtonKey,
         borderRadius: BorderRadius.circular(SariRadius.button),
-        onTap: _showComingSoon,
+        onTap: _handleCallTaxi,
         child: SizedBox(
           height: 56,
           child: Row(
