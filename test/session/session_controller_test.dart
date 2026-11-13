@@ -146,4 +146,39 @@ void main() {
     expect(controller.hasSession, isTrue);
     expect(controller.hasCompletedSession, isFalse);
   });
+
+  test('hasCompletedSession izin reddedilse de boş soyadla true', () async {
+    final controller = SessionController(
+      FakeSessionStore(
+        const Session(
+          phone: '+905551112233',
+          name: 'Şükrü',
+          surname: '',
+          locationPermission: LocationPermissionStatus.denied,
+        ),
+      ),
+    );
+
+    await controller.load();
+
+    expect(controller.hasCompletedSession, isTrue);
+  });
+
+  test('hasCompletedSession konum koordinatı olmadan da true', () async {
+    final controller = SessionController(
+      FakeSessionStore(
+        const Session(
+          phone: '+905551112233',
+          name: 'Şükrü',
+          surname: 'Ağrı',
+          locationPermission: LocationPermissionStatus.granted,
+        ),
+      ),
+    );
+
+    await controller.load();
+
+    expect(controller.session?.location, isNull);
+    expect(controller.hasCompletedSession, isTrue);
+  });
 }

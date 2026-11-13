@@ -1,5 +1,6 @@
 import 'package:go_router/go_router.dart';
 
+import '../permissions/location_permission_service.dart';
 import '../screens/location_permission_screen.dart';
 import '../screens/name_entry_screen.dart';
 import '../screens/otp_screen.dart';
@@ -8,7 +9,11 @@ import '../screens/session_placeholder_screen.dart';
 import '../session/session_controller.dart';
 import 'app_routes.dart';
 
-GoRouter createAppRouter({required SessionController sessionController}) {
+GoRouter createAppRouter({
+  required SessionController sessionController,
+  LocationPermissionService locationPermissionService =
+      const PermissionHandlerLocationPermissionService(),
+}) {
   return GoRouter(
     initialLocation: AppRoutes.login,
     refreshListenable: sessionController,
@@ -42,7 +47,10 @@ GoRouter createAppRouter({required SessionController sessionController}) {
       ),
       GoRoute(
         path: AppRoutes.locationPermission,
-        builder: (context, state) => const LocationPermissionScreen(),
+        builder: (context, state) => LocationPermissionScreen(
+          sessionController: sessionController,
+          permissionService: locationPermissionService,
+        ),
       ),
       GoRoute(
         path: AppRoutes.session,
