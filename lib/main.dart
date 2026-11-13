@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_map/flutter_map.dart';
 import 'package:go_router/go_router.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -26,11 +27,13 @@ class SariApp extends StatefulWidget {
     this.locationPermissionService =
         const PermissionHandlerLocationPermissionService(),
     this.locationService = const GeolocatorLocationService(),
+    this.tileProvider,
   });
 
   final SessionController sessionController;
   final LocationPermissionService locationPermissionService;
   final LocationService locationService;
+  final TileProvider? tileProvider;
 
   @override
   State<SariApp> createState() => _SariAppState();
@@ -51,7 +54,8 @@ class _SariAppState extends State<SariApp> {
     if (oldWidget.sessionController != widget.sessionController ||
         oldWidget.locationPermissionService !=
             widget.locationPermissionService ||
-        oldWidget.locationService != widget.locationService) {
+        oldWidget.locationService != widget.locationService ||
+        oldWidget.tileProvider != widget.tileProvider) {
       _router.dispose();
       _router = _createRouter();
     }
@@ -61,6 +65,7 @@ class _SariAppState extends State<SariApp> {
     sessionController: widget.sessionController,
     locationPermissionService: widget.locationPermissionService,
     locationService: widget.locationService,
+    tileProvider: widget.tileProvider,
   );
 
   @override

@@ -25,6 +25,8 @@ class SariMap extends StatelessWidget {
     this.center = DefaultLocations.modaKadikoy,
     this.zoom = defaultZoom,
     this.tileProvider,
+    this.mapController,
+    this.onMapReady,
     this.layers = const <Widget>[],
     this.interactive = true,
   });
@@ -37,15 +39,19 @@ class SariMap extends StatelessWidget {
   final LocationPoint center;
   final double zoom;
   final TileProvider? tileProvider;
+  final MapController? mapController;
+  final VoidCallback? onMapReady;
   final List<Widget> layers;
   final bool interactive;
 
   @override
   Widget build(BuildContext context) {
     return FlutterMap(
+      mapController: mapController,
       options: MapOptions(
         initialCenter: LatLng(center.latitude, center.longitude),
         initialZoom: zoom,
+        onMapReady: onMapReady,
         interactionOptions: InteractionOptions(
           flags: interactive ? InteractiveFlag.all : InteractiveFlag.none,
         ),
@@ -55,6 +61,7 @@ class SariMap extends StatelessWidget {
           urlTemplate: tileUrlTemplate,
           userAgentPackageName: userAgentPackageName,
           tileProvider: tileProvider ?? NetworkTileProvider(),
+          tileDisplay: const TileDisplay.instantaneous(),
         ),
         ...layers,
       ],

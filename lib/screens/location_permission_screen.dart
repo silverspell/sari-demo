@@ -81,7 +81,7 @@ class _LocationPermissionScreenState extends State<LocationPermissionScreen> {
       return;
     }
 
-    context.go(AppRoutes.session);
+    context.go(AppRoutes.home);
   }
 
   Future<void> _handleNotNow() async {
@@ -98,7 +98,7 @@ class _LocationPermissionScreenState extends State<LocationPermissionScreen> {
       return;
     }
 
-    context.go(AppRoutes.session);
+    context.go(AppRoutes.home);
   }
 
   @override

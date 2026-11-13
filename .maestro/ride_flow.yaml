@@ -1,5 +1,4 @@
-# Uçtan uca ilk dilim: telefon girişi -> OTP -> isim -> konum izni ->
-# oturum yer tutucusu -> çıkış. Sonraki dilimler uygulama epic'inde eklenir.
+# Uçtan uca ilk dilim: telefon girişi -> OTP -> isim -> konum izni -> ana ekran.
 appId: tr.byteflow.sari
 ---
 - launchApp:
@@ -26,7 +25,6 @@ appId: tr.byteflow.sari
 - tapOn: 'Devam et'
 - assertVisible: 'Konumunu kullanalım'
 - tapOn: 'Şimdi değil'
-- assertVisible: 'Merhaba, Ayşe Yılmaz'
-- assertVisible: 'Çıkış yap'
-- tapOn: 'Çıkış yap'
-- assertVisible: 'Telefon numaranı gir'
+- assertVisible: 'Merhaba Ayşe'
+- assertVisible: 'Nereye?'
+- assertVisible: 'Taksi çağır'

@@ -1,12 +1,13 @@
+import 'package:flutter_map/flutter_map.dart';
 import 'package:go_router/go_router.dart';
 
 import '../location/location_service.dart';
 import '../permissions/location_permission_service.dart';
+import '../screens/home_screen.dart';
 import '../screens/location_permission_screen.dart';
 import '../screens/name_entry_screen.dart';
 import '../screens/otp_screen.dart';
 import '../screens/phone_login_screen.dart';
-import '../screens/session_placeholder_screen.dart';
 import '../session/session_controller.dart';
 import 'app_routes.dart';
 
@@ -15,6 +16,7 @@ GoRouter createAppRouter({
   LocationPermissionService locationPermissionService =
       const PermissionHandlerLocationPermissionService(),
   LocationService locationService = const GeolocatorLocationService(),
+  TileProvider? tileProvider,
 }) {
   return GoRouter(
     initialLocation: AppRoutes.login,
@@ -22,7 +24,7 @@ GoRouter createAppRouter({
     redirect: (context, state) {
       final isAuthRoute = AppRoutes.authPaths.contains(state.matchedLocation);
       if (sessionController.hasCompletedSession && isAuthRoute) {
-        return AppRoutes.session;
+        return AppRoutes.home;
       }
       if (!sessionController.hasCompletedSession && !isAuthRoute) {
         return AppRoutes.login;
@@ -56,9 +58,13 @@ GoRouter createAppRouter({
         ),
       ),
       GoRoute(
-        path: AppRoutes.session,
-        builder: (context, state) =>
-            SessionPlaceholderScreen(sessionController: sessionController),
+        path: AppRoutes.home,
+        builder: (context, state) => HomeScreen(
+          sessionController: sessionController,
+          permissionService: locationPermissionService,
+          locationService: locationService,
+          tileProvider: tileProvider,
+        ),
       ),
     ],
   );

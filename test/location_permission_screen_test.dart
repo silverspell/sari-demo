@@ -11,7 +11,7 @@ import 'package:sari/main.dart';
 import 'package:sari/permissions/location_permission_service.dart';
 import 'package:sari/router/app_routes.dart';
 import 'package:sari/screens/location_permission_screen.dart';
-import 'package:sari/screens/session_placeholder_screen.dart';
+import 'package:sari/screens/home_screen.dart';
 import 'package:sari/session/location_point.dart';
 import 'package:sari/session/session.dart';
 import 'package:sari/session/session_controller.dart';
@@ -20,6 +20,7 @@ import 'package:sari/theme/sari_theme.dart';
 import 'support/fake_location_permission_service.dart';
 import 'support/fake_location_service.dart';
 import 'support/fake_session_store.dart';
+import 'support/fake_tile_provider.dart';
 
 const _title = 'Konumunu kullanalım';
 const _body =
@@ -69,6 +70,7 @@ Future<SessionController> pumpApp(
       locationPermissionService:
           permissionService ?? FakeLocationPermissionService(),
       locationService: locationService ?? FakeLocationService(),
+      tileProvider: FakeTileProvider(),
     ),
   );
   await tester.pumpAndSettle();
@@ -150,8 +152,8 @@ void main() {
     expect(controller.session?.phone, '+905551112233');
     expect(controller.session?.name, 'Şükrü');
     expect(controller.hasCompletedSession, isTrue);
-    expect(locationOf(tester), AppRoutes.session);
-    expect(find.byType(SessionPlaceholderScreen), findsOneWidget);
+    expect(locationOf(tester), AppRoutes.home);
+    expect(find.byType(HomeScreen), findsOneWidget);
   });
 
   testWidgets('izin verilir ama konum alınamazsa Moda yazılır', (tester) async {
@@ -177,7 +179,7 @@ void main() {
       LocationPermissionStatus.granted,
     );
     expect(controller.session?.location, DefaultLocations.modaKadikoy);
-    expect(locationOf(tester), AppRoutes.session);
+    expect(locationOf(tester), AppRoutes.home);
   });
 
   testWidgets('konum servisi hata verirse Moda yazılır', (tester) async {
@@ -204,7 +206,7 @@ void main() {
       LocationPermissionStatus.granted,
     );
     expect(controller.session?.location, DefaultLocations.modaKadikoy);
-    expect(locationOf(tester), AppRoutes.session);
+    expect(locationOf(tester), AppRoutes.home);
   });
 
   testWidgets('Konumu aç reddedilince Moda ile oturuma gider ve konum servisi '
@@ -232,8 +234,8 @@ void main() {
       LocationPermissionStatus.denied,
     );
     expect(controller.session?.location, DefaultLocations.modaKadikoy);
-    expect(locationOf(tester), AppRoutes.session);
-    expect(find.byType(SessionPlaceholderScreen), findsOneWidget);
+    expect(locationOf(tester), AppRoutes.home);
+    expect(find.byType(HomeScreen), findsOneWidget);
   });
 
   testWidgets('Şimdi değil izin istemez, reddedildi ve Moda yazar', (
@@ -261,8 +263,8 @@ void main() {
     );
     expect(controller.session?.location, DefaultLocations.modaKadikoy);
     expect(controller.hasCompletedSession, isTrue);
-    expect(locationOf(tester), AppRoutes.session);
-    expect(find.byType(SessionPlaceholderScreen), findsOneWidget);
+    expect(locationOf(tester), AppRoutes.home);
+    expect(find.byType(HomeScreen), findsOneWidget);
   });
 
   testWidgets('oturum yokken çökmeden varsayılanları yazar', (tester) async {
