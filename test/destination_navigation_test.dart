@@ -7,6 +7,7 @@ import 'package:sari/main.dart';
 import 'package:sari/rides/ride_flow_controller.dart';
 import 'package:sari/router/app_routes.dart';
 import 'package:sari/screens/destination_screen.dart';
+import 'package:sari/screens/finding_driver_screen.dart';
 import 'package:sari/screens/home_screen.dart';
 import 'package:sari/screens/phone_login_screen.dart';
 import 'package:sari/screens/route_fare_screen.dart';
@@ -158,6 +159,72 @@ void main() {
     expect(find.text('Kadıköy İskele'), findsOneWidget);
     expect(find.text('12 dk'), findsWidgets);
     expect(find.text('4,8 km'), findsWidgets);
+    expect(find.text('₺185'), findsOneWidget);
+    expect(find.text('Taksi Çağır'), findsOneWidget);
+    expect(tester.takeException(), isNull);
+  });
+
+  testWidgets('Taksi Çağır sürücü arama ekranını açar ve akışı korur', (
+    tester,
+  ) async {
+    final flowController = RideFlowController();
+    await pumpApp(tester, rideFlowController: flowController);
+
+    await tester.tap(find.byKey(HomeScreen.searchButtonKey));
+    await tester.pumpAndSettle();
+    await tester.tap(
+      find.byKey(DestinationScreen.historyRowKey('kadikoy-iskele')),
+    );
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.byKey(RouteFareScreen.callButtonKey));
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 400));
+
+    expect(find.byType(FindingDriverScreen), findsOneWidget);
+    expect(
+      stateLocationOf(tester, find.byType(FindingDriverScreen)),
+      AppRoutes.findingDriver,
+    );
+    expect(flowController.destination, FakeRideData.kadikoyIskele);
+    expect(flowController.selectedRideClass, RideClass.sari);
+    expect(find.text('₺185,00'), findsOneWidget);
+    expect(find.text('Moda → Kadıköy İskele'), findsOneWidget);
+    expect(tester.takeException(), isNull);
+  });
+
+  testWidgets('Evet, İptal Et rota ve ücret ekranına döner', (tester) async {
+    final flowController = RideFlowController();
+    await pumpApp(tester, rideFlowController: flowController);
+
+    await tester.tap(find.byKey(HomeScreen.searchButtonKey));
+    await tester.pumpAndSettle();
+    await tester.tap(
+      find.byKey(DestinationScreen.historyRowKey('kadikoy-iskele')),
+    );
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.byKey(RouteFareScreen.callButtonKey));
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 400));
+
+    await tester.tap(find.byKey(FindingDriverScreen.cancelButtonKey));
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 400));
+    expect(find.byKey(FindingDriverScreen.cancelDialogKey), findsOneWidget);
+
+    await tester.tap(find.byKey(FindingDriverScreen.confirmCancelKey));
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 400));
+    await tester.pump(const Duration(milliseconds: 400));
+
+    expect(find.byType(RouteFareScreen), findsOneWidget);
+    expect(find.byType(FindingDriverScreen), findsNothing);
+    expect(
+      stateLocationOf(tester, find.byType(RouteFareScreen)),
+      AppRoutes.routeFare,
+    );
+    expect(flowController.destination, FakeRideData.kadikoyIskele);
     expect(find.text('₺185'), findsOneWidget);
     expect(find.text('Taksi Çağır'), findsOneWidget);
     expect(tester.takeException(), isNull);

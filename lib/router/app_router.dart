@@ -5,6 +5,7 @@ import '../location/location_service.dart';
 import '../permissions/location_permission_service.dart';
 import '../rides/ride_flow_controller.dart';
 import '../screens/destination_screen.dart';
+import '../screens/finding_driver_screen.dart';
 import '../screens/home_screen.dart';
 import '../screens/location_permission_screen.dart';
 import '../screens/name_entry_screen.dart';
@@ -80,6 +81,13 @@ GoRouter createAppRouter({
       GoRoute(
         path: AppRoutes.routeFare,
         builder: (context, state) => RouteFareScreen(
+          flowController: flowController,
+          tileProvider: tileProvider,
+        ),
+      ),
+      GoRoute(
+        path: AppRoutes.findingDriver,
+        builder: (context, state) => FindingDriverScreen(
           flowController: flowController,
           tileProvider: tileProvider,
         ),

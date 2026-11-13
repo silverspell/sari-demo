@@ -5,6 +5,7 @@ import 'package:latlong2/latlong.dart';
 import 'package:sari/data/fake_ride_data.dart';
 import 'package:sari/data/ride_class.dart';
 import 'package:sari/rides/ride_flow_controller.dart';
+import 'package:sari/screens/finding_driver_screen.dart';
 import 'package:sari/screens/route_fare_screen.dart';
 import 'package:sari/session/location_point.dart';
 import 'package:sari/theme/sari_theme.dart';
@@ -143,9 +144,7 @@ void main() {
     expect(tester.takeException(), isNull);
   });
 
-  testWidgets('Taksi Çağır Yakında gösterir ve rota ekranında kalır', (
-    tester,
-  ) async {
+  testWidgets('Taksi Çağır sürücü arama ekranını açar', (tester) async {
     final flow = RideFlowController()
       ..selectDestination(FakeRideData.kadikoyIskele);
 
@@ -153,10 +152,11 @@ void main() {
 
     await tester.tap(find.byKey(RouteFareScreen.callButtonKey));
     await tester.pump();
+    await tester.pump(const Duration(milliseconds: 400));
 
-    expect(find.text('Yakında'), findsOneWidget);
-    expect(find.byKey(RouteFareScreen.screenKey), findsOneWidget);
-    expect(find.byKey(RouteFareScreen.polylineLayerKey), findsOneWidget);
+    expect(find.byType(FindingDriverScreen), findsOneWidget);
+    expect(find.byKey(FindingDriverScreen.screenKey), findsOneWidget);
+    expect(find.byKey(FindingDriverScreen.mapKey), findsOneWidget);
     expect(tester.takeException(), isNull);
   });
 
