@@ -3,6 +3,7 @@ import 'package:go_router/go_router.dart';
 
 import '../location/location_service.dart';
 import '../permissions/location_permission_service.dart';
+import '../screens/destination_screen.dart';
 import '../screens/home_screen.dart';
 import '../screens/location_permission_screen.dart';
 import '../screens/name_entry_screen.dart';
@@ -65,6 +66,10 @@ GoRouter createAppRouter({
           locationService: locationService,
           tileProvider: tileProvider,
         ),
+      ),
+      GoRoute(
+        path: AppRoutes.destination,
+        builder: (context, state) => const DestinationScreen(),
       ),
     ],
   );

@@ -222,15 +222,13 @@ void main() {
     expect(tester.takeException(), isNull);
   });
 
-  testWidgets('Nereye, Karaköy ve Taksi çağır ertelenir ve Yakında gösterir', (
+  testWidgets('Karaköy, ETA ve şehir rozeti ertelenir ve Yakında gösterir', (
     tester,
   ) async {
     await pumpHome(tester);
 
     for (final key in [
-      HomeScreen.searchButtonKey,
       HomeScreen.karakoyChipKey,
-      HomeScreen.callTaxiButtonKey,
       HomeScreen.etaPillKey,
       HomeScreen.cityBadgeKey,
     ]) {
