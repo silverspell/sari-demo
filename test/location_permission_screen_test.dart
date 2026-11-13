@@ -1,3 +1,6 @@
+@Tags(['golden'])
+library;
+
 import 'dart:io';
 
 import 'package:alchemist/alchemist.dart';
