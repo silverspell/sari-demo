@@ -35,7 +35,10 @@ GoRouter createAppRouter({required SessionController sessionController}) {
       ),
       GoRoute(
         path: AppRoutes.name,
-        builder: (context, state) => const NameEntryScreen(),
+        builder: (context, state) => NameEntryScreen(
+          sessionController: sessionController,
+          phone: sessionController.session?.phone,
+        ),
       ),
       GoRoute(
         path: AppRoutes.locationPermission,
