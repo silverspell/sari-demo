@@ -1,5 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:sari/data/fake_ride_data.dart';
+import 'package:sari/session/location_point.dart';
 
 void main() {
   group('FakeRideData', () {
@@ -35,6 +36,14 @@ void main() {
       expect(FakeRideData.driver.plate, '34 TK 1923');
       expect(FakeRideData.driver.rating, 4.9);
       expect(FakeRideData.driver.vehicle, 'Fiat Egea');
+    });
+
+    test('sürücü yaklaşımı tek sahte kümede 750 metre olarak sabittir', () {
+      expect(FakeRideData.driverApproachDistanceMeters, 750);
+      expect(
+        FakeRideData.driverApproachOrigin,
+        isNot(DefaultLocations.modaKadikoy),
+      );
     });
 
     test('kayıtlı yerler Ev ve İş (Levent) olarak sabittir', () {

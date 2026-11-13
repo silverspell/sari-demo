@@ -5,6 +5,7 @@ import '../location/location_service.dart';
 import '../permissions/location_permission_service.dart';
 import '../rides/ride_flow_controller.dart';
 import '../screens/destination_screen.dart';
+import '../screens/driver_found_screen.dart';
 import '../screens/finding_driver_screen.dart';
 import '../screens/home_screen.dart';
 import '../screens/location_permission_screen.dart';
@@ -22,6 +23,7 @@ GoRouter createAppRouter({
   LocationService locationService = const GeolocatorLocationService(),
   RideFlowController? rideFlowController,
   TileProvider? tileProvider,
+  Duration findingDriverWaitDuration = FindingDriverScreen.defaultWaitDuration,
 }) {
   final flowController = rideFlowController ?? RideFlowController();
 
@@ -88,6 +90,20 @@ GoRouter createAppRouter({
       GoRoute(
         path: AppRoutes.findingDriver,
         builder: (context, state) => FindingDriverScreen(
+          flowController: flowController,
+          tileProvider: tileProvider,
+          waitDuration: findingDriverWaitDuration,
+          onSearchComplete: () {
+            if (!context.mounted) {
+              return;
+            }
+            context.pushReplacement(AppRoutes.driverFound);
+          },
+        ),
+      ),
+      GoRoute(
+        path: AppRoutes.driverFound,
+        builder: (context, state) => DriverFoundScreen(
           flowController: flowController,
           tileProvider: tileProvider,
         ),
