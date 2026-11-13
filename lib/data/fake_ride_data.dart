@@ -69,6 +69,13 @@ abstract final class FakeRideData {
     vehicle: 'Fiat Egea',
   );
 
+  static const driverApproachOrigin = LocationPoint(
+    latitude: 40.9869,
+    longitude: 29.0207,
+  );
+
+  static const driverApproachDistanceMeters = 750;
+
   static const homeAreaLabel = 'Moda';
 
   static const sampleOrigin = DefaultLocations.modaKadikoy;
