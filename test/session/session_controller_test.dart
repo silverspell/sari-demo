@@ -1,0 +1,72 @@
+import 'package:flutter_test/flutter_test.dart';
+import 'package:sari/session/session.dart';
+import 'package:sari/session/session_controller.dart';
+
+import '../support/fake_session_store.dart';
+
+void main() {
+  const session = Session(
+    phone: '+905551112233',
+    name: 'Şükrü',
+    surname: 'Ağrı',
+    locationPermission: LocationPermissionStatus.granted,
+  );
+
+  test('load mevcut oturumu yükler', () async {
+    final store = FakeSessionStore(session);
+    final controller = SessionController(store);
+
+    await controller.load();
+
+    expect(controller.session, session);
+    expect(controller.hasSession, isTrue);
+  });
+
+  test('load boş depoda oturumsuz kalır', () async {
+    final controller = SessionController(FakeSessionStore());
+
+    await controller.load();
+
+    expect(controller.session, isNull);
+    expect(controller.hasSession, isFalse);
+  });
+
+  test('save depoya yazar ve bir kez haber verir', () async {
+    final store = FakeSessionStore();
+    final controller = SessionController(store);
+    var notifications = 0;
+    controller.addListener(() => notifications++);
+
+    await controller.save(session);
+
+    expect(store.session, session);
+    expect(controller.session, session);
+    expect(notifications, 1);
+  });
+
+  test('clear depoyu ve durumu temizler ve haber verir', () async {
+    final store = FakeSessionStore(session);
+    final controller = SessionController(store);
+    await controller.load();
+    var notifications = 0;
+    controller.addListener(() => notifications++);
+
+    await controller.clear();
+
+    expect(store.session, isNull);
+    expect(controller.session, isNull);
+    expect(notifications, 1);
+  });
+
+  test('clear sonrası aynı depodan yeni controller oturumsuz açılır', () async {
+    final store = FakeSessionStore(session);
+    final controller = SessionController(store);
+    await controller.load();
+    await controller.clear();
+
+    final restarted = SessionController(store);
+    await restarted.load();
+
+    expect(restarted.hasSession, isFalse);
+  });
+}
