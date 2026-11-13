@@ -1,0 +1,8 @@
+validation:
+  mode: devcontainer
+  timeoutSeconds: 1200
+  commands:
+    - name: analyze
+      run: flutter analyze
+    - name: test
+      run: flutter test
