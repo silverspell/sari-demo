@@ -10,6 +10,8 @@ import 'router/app_router.dart';
 import 'session/session_controller.dart';
 import 'session/shared_preferences_session_store.dart';
 import 'theme/sari_theme.dart';
+import 'trips/in_memory_trip_history_store.dart';
+import 'trips/trip_history_controller.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -29,6 +31,7 @@ class SariApp extends StatefulWidget {
         const PermissionHandlerLocationPermissionService(),
     this.locationService = const GeolocatorLocationService(),
     this.rideFlowController,
+    this.tripHistoryController,
     this.tileProvider,
   });
 
@@ -36,6 +39,7 @@ class SariApp extends StatefulWidget {
   final LocationPermissionService locationPermissionService;
   final LocationService locationService;
   final RideFlowController? rideFlowController;
+  final TripHistoryController? tripHistoryController;
   final TileProvider? tileProvider;
 
   @override
@@ -45,15 +49,23 @@ class SariApp extends StatefulWidget {
 class _SariAppState extends State<SariApp> {
   late GoRouter _router;
   RideFlowController? _ownedRideFlowController;
+  TripHistoryController? _ownedTripHistoryController;
 
   RideFlowController get _rideFlowController =>
       widget.rideFlowController ??
       (_ownedRideFlowController ??= RideFlowController());
 
+  TripHistoryController get _tripHistoryController =>
+      widget.tripHistoryController ??
+      (_ownedTripHistoryController ??= TripHistoryController(
+        InMemoryTripHistoryStore(),
+      ));
+
   @override
   void initState() {
     super.initState();
     _ensureRideFlowController();
+    _ensureTripHistoryController();
     _router = _createRouter();
   }
 
@@ -62,7 +74,10 @@ class _SariAppState extends State<SariApp> {
     super.didUpdateWidget(oldWidget);
     final flowChanged =
         oldWidget.rideFlowController != widget.rideFlowController;
+    final historyChanged =
+        oldWidget.tripHistoryController != widget.tripHistoryController;
     if (flowChanged ||
+        historyChanged ||
         oldWidget.sessionController != widget.sessionController ||
         oldWidget.locationPermissionService !=
             widget.locationPermissionService ||
@@ -72,6 +87,11 @@ class _SariAppState extends State<SariApp> {
         _ownedRideFlowController?.dispose();
         _ownedRideFlowController = null;
         _ensureRideFlowController();
+      }
+      if (historyChanged) {
+        _ownedTripHistoryController?.dispose();
+        _ownedTripHistoryController = null;
+        _ensureTripHistoryController();
       }
       _router.dispose();
       _router = _createRouter();
@@ -84,11 +104,20 @@ class _SariAppState extends State<SariApp> {
     }
   }
 
+  void _ensureTripHistoryController() {
+    if (widget.tripHistoryController == null) {
+      _ownedTripHistoryController ??= TripHistoryController(
+        InMemoryTripHistoryStore(),
+      );
+    }
+  }
+
   GoRouter _createRouter() => createAppRouter(
     sessionController: widget.sessionController,
     locationPermissionService: widget.locationPermissionService,
     locationService: widget.locationService,
     rideFlowController: _rideFlowController,
+    tripHistoryController: _tripHistoryController,
     tileProvider: widget.tileProvider,
   );
 
@@ -96,6 +125,7 @@ class _SariAppState extends State<SariApp> {
   void dispose() {
     _router.dispose();
     _ownedRideFlowController?.dispose();
+    _ownedTripHistoryController?.dispose();
     super.dispose();
   }
 

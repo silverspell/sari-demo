@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 import '../location/location_service.dart';
 import '../permissions/location_permission_service.dart';
 import '../rides/ride_flow_controller.dart';
+import '../screens/arrived_rating_screen.dart';
 import '../screens/destination_screen.dart';
 import '../screens/driver_found_screen.dart';
 import '../screens/finding_driver_screen.dart';
@@ -15,6 +16,8 @@ import '../screens/phone_login_screen.dart';
 import '../screens/ride_screen.dart';
 import '../screens/route_fare_screen.dart';
 import '../session/session_controller.dart';
+import '../trips/in_memory_trip_history_store.dart';
+import '../trips/trip_history_controller.dart';
 import 'app_routes.dart';
 
 GoRouter createAppRouter({
@@ -23,12 +26,17 @@ GoRouter createAppRouter({
       const PermissionHandlerLocationPermissionService(),
   LocationService locationService = const GeolocatorLocationService(),
   RideFlowController? rideFlowController,
+  TripHistoryController? tripHistoryController,
   TileProvider? tileProvider,
   Duration findingDriverWaitDuration = FindingDriverScreen.defaultWaitDuration,
   Duration driverArrivalDuration = DriverFoundScreen.defaultArrivalDuration,
   Duration rideDuration = RideScreen.defaultRideDuration,
+  DateTime Function()? now,
 }) {
   final flowController = rideFlowController ?? RideFlowController();
+  final historyController =
+      tripHistoryController ??
+      TripHistoryController(InMemoryTripHistoryStore());
 
   return GoRouter(
     initialLocation: AppRoutes.login,
@@ -124,6 +132,20 @@ GoRouter createAppRouter({
           flowController: flowController,
           tileProvider: tileProvider,
           rideDuration: rideDuration,
+          onRideComplete: () {
+            if (!context.mounted) {
+              return;
+            }
+            context.pushReplacement(AppRoutes.arrived);
+          },
+        ),
+      ),
+      GoRoute(
+        path: AppRoutes.arrived,
+        builder: (context, state) => ArrivedRatingScreen(
+          flowController: flowController,
+          tripHistoryController: historyController,
+          now: now,
         ),
       ),
     ],

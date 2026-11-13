@@ -26,6 +26,7 @@ class RideScreen extends StatefulWidget {
     this.seed = FakeRideData.rideSeed,
     this.animationsEnabled = true,
     this.animationFrame = 0.0,
+    this.onRideComplete,
   });
 
   static const defaultRideDuration = Duration(seconds: 12);
@@ -59,6 +60,7 @@ class RideScreen extends StatefulWidget {
   final int seed;
   final bool animationsEnabled;
   final double animationFrame;
+  final VoidCallback? onRideComplete;
 
   @override
   State<RideScreen> createState() => _RideScreenState();
@@ -72,6 +74,8 @@ class _RideScreenState extends State<RideScreen>
   late final RideSimulation _simulation;
 
   bool _mapReady = false;
+
+  bool _rideNotified = false;
 
   RideFlowController get _flow => widget.flowController ?? _ownedFlowController;
 
@@ -106,10 +110,12 @@ class _RideScreenState extends State<RideScreen>
       vsync: this,
       duration: widget.rideDuration,
     );
+    if (!widget.animationsEnabled) {
+      _rideController.value = widget.animationFrame.clamp(0.0, 1.0).toDouble();
+    }
+    _rideController.addStatusListener(_handleRideStatus);
     if (widget.animationsEnabled) {
       _rideController.forward();
-    } else {
-      _rideController.value = widget.animationFrame.clamp(0.0, 1.0).toDouble();
     }
     _simulation = RideSimulation(
       routePoints: _routePoints,
@@ -120,10 +126,24 @@ class _RideScreenState extends State<RideScreen>
 
   @override
   void dispose() {
+    _rideController.removeStatusListener(_handleRideStatus);
     _rideController.dispose();
     _ownedMapController.dispose();
     _ownedFlowController.dispose();
     super.dispose();
+  }
+
+  void _handleRideStatus(AnimationStatus status) {
+    if (status != AnimationStatus.completed || _rideNotified) {
+      return;
+    }
+    _rideNotified = true;
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) {
+        return;
+      }
+      widget.onRideComplete?.call();
+    });
   }
 
   void _ensureDestination() {
