@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:go_router/go_router.dart';
@@ -11,6 +13,7 @@ class OtpScreen extends StatefulWidget {
     this.phone,
     this.initialCode,
     this.initialError = false,
+    this.now,
   });
 
   static const screenKey = Key('otp-screen');
@@ -19,12 +22,18 @@ class OtpScreen extends StatefulWidget {
   static const clearButtonKey = Key('otp-clear-button');
   static const verifyButtonKey = Key('otp-verify-button');
   static const backButtonKey = Key('otp-back-button');
+  static const resendLabelKey = Key('otp-resend-label');
+  static const resendButtonKey = Key('otp-resend-button');
+  static const callButtonKey = Key('otp-call-button');
+  static const resendSnackBarKey = Key('otp-resend-snackbar');
+  static const callSnackBarKey = Key('otp-call-snackbar');
 
   static Key digitKey(int index) => Key('otp-digit-$index');
 
   final String? phone;
   final String? initialCode;
   final bool initialError;
+  final DateTime Function()? now;
 
   @override
   State<OtpScreen> createState() => _OtpScreenState();
@@ -32,10 +41,16 @@ class OtpScreen extends StatefulWidget {
 
 class _OtpScreenState extends State<OtpScreen> {
   static const _correctCode = '1234';
+  static const _resendDuration = Duration(seconds: 28);
 
   late final List<TextEditingController> _controllers;
   late final List<FocusNode> _focusNodes;
   late bool _showError;
+  late DateTime _resendAvailableAt;
+  int _remainingSeconds = _resendDuration.inSeconds;
+  Timer? _countdownTimer;
+
+  DateTime _now() => widget.now?.call() ?? DateTime.now();
 
   @override
   void initState() {
@@ -43,16 +58,21 @@ class _OtpScreenState extends State<OtpScreen> {
     final code = widget.initialCode ?? '';
     _controllers = List.generate(
       4,
-      (index) => TextEditingController(
-        text: index < code.length ? code[index] : '',
-      ),
+      (index) =>
+          TextEditingController(text: index < code.length ? code[index] : ''),
     );
     _focusNodes = List.generate(4, (_) => FocusNode());
     _showError = widget.initialError;
+    _resendAvailableAt = _now().add(_resendDuration);
+    _countdownTimer = Timer.periodic(
+      const Duration(seconds: 1),
+      (_) => _updateCountdown(),
+    );
   }
 
   @override
   void dispose() {
+    _countdownTimer?.cancel();
     for (final controller in _controllers) {
       controller.dispose();
     }
@@ -60,6 +80,49 @@ class _OtpScreenState extends State<OtpScreen> {
       focusNode.dispose();
     }
     super.dispose();
+  }
+
+  bool get _resendActive => _remainingSeconds == 0;
+
+  void _updateCountdown() {
+    final milliseconds = _resendAvailableAt.difference(_now()).inMilliseconds;
+    final remaining = (milliseconds / 1000)
+        .ceil()
+        .clamp(0, _resendDuration.inSeconds)
+        .toInt();
+    if (!mounted || remaining == _remainingSeconds) {
+      return;
+    }
+    setState(() => _remainingSeconds = remaining);
+  }
+
+  void _resend() {
+    if (!_resendActive) {
+      return;
+    }
+    setState(() {
+      _resendAvailableAt = _now().add(_resendDuration);
+      _remainingSeconds = _resendDuration.inSeconds;
+    });
+    ScaffoldMessenger.of(context)
+      ..hideCurrentSnackBar()
+      ..showSnackBar(
+        const SnackBar(
+          key: OtpScreen.resendSnackBarKey,
+          content: Text('Kod tekrar gönderildi'),
+        ),
+      );
+  }
+
+  void _call() {
+    ScaffoldMessenger.of(context)
+      ..hideCurrentSnackBar()
+      ..showSnackBar(
+        const SnackBar(
+          key: OtpScreen.callSnackBarKey,
+          content: Text('Demo: kod 1234'),
+        ),
+      );
   }
 
   String get _enteredCode => _controllers.map((c) => c.text).join();
@@ -265,7 +328,9 @@ class _OtpScreenState extends State<OtpScreen> {
                   enabledBorder: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(SariRadius.button),
                     borderSide: BorderSide(
-                      color: _showError ? SariColors.critical : SariColors.border,
+                      color: _showError
+                          ? SariColors.critical
+                          : SariColors.border,
                     ),
                   ),
                   focusedBorder: OutlineInputBorder(
@@ -303,9 +368,7 @@ class _OtpScreenState extends State<OtpScreen> {
           Expanded(
             child: Text(
               'Kod hatalı, tekrar dene.',
-              style: theme.textTheme.labelMedium?.copyWith(
-                color: colors.error,
-              ),
+              style: theme.textTheme.labelMedium?.copyWith(color: colors.error),
             ),
           ),
           TextButton(
@@ -335,20 +398,46 @@ class _OtpScreenState extends State<OtpScreen> {
   }
 
   Widget _buildResendRow(ThemeData theme) {
+    if (_resendActive) {
+      return Center(
+        child: TextButton.icon(
+          key: OtpScreen.resendButtonKey,
+          onPressed: _resend,
+          style: TextButton.styleFrom(
+            foregroundColor: theme.colorScheme.primary,
+            minimumSize: Size.zero,
+            padding: EdgeInsets.zero,
+            tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+            textStyle: theme.textTheme.labelMedium,
+          ),
+          icon: const Icon(Icons.update, size: 18),
+          label: Text(
+            'Kodu tekrar gönder',
+            style: theme.textTheme.labelMedium?.copyWith(
+              color: theme.colorScheme.primary,
+              decoration: TextDecoration.underline,
+            ),
+          ),
+        ),
+      );
+    }
+
     final style = theme.textTheme.labelMedium?.copyWith(
       color: SariColors.textSecondary,
     );
+    final countdown = '0:${_remainingSeconds.toString().padLeft(2, '0')}';
     return Row(
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
         const Icon(Icons.update, size: 18, color: SariColors.textSecondary),
         const SizedBox(width: SariSpacing.xs),
         Text.rich(
+          key: OtpScreen.resendLabelKey,
           TextSpan(
             children: [
               TextSpan(text: 'Kodu tekrar gönder (', style: style),
               TextSpan(
-                text: '0:28',
+                text: countdown,
                 style: theme.textTheme.labelMedium?.copyWith(
                   color: SariColors.ink,
                 ),
@@ -372,7 +461,8 @@ class _OtpScreenState extends State<OtpScreen> {
           ),
         ),
         TextButton.icon(
-          onPressed: () {},
+          key: OtpScreen.callButtonKey,
+          onPressed: _call,
           style: TextButton.styleFrom(
             foregroundColor: colors.primary,
             minimumSize: Size.zero,
