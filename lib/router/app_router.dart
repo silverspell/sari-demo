@@ -1,26 +1,50 @@
+import 'package:flutter_map/flutter_map.dart';
 import 'package:go_router/go_router.dart';
 
+import '../location/location_service.dart';
 import '../permissions/location_permission_service.dart';
+import '../rides/ride_flow_controller.dart';
+import '../screens/arrived_rating_screen.dart';
+import '../screens/destination_screen.dart';
+import '../screens/driver_found_screen.dart';
+import '../screens/finding_driver_screen.dart';
+import '../screens/home_screen.dart';
 import '../screens/location_permission_screen.dart';
 import '../screens/name_entry_screen.dart';
 import '../screens/otp_screen.dart';
 import '../screens/phone_login_screen.dart';
-import '../screens/session_placeholder_screen.dart';
+import '../screens/ride_screen.dart';
+import '../screens/route_fare_screen.dart';
 import '../session/session_controller.dart';
+import '../trips/in_memory_trip_history_store.dart';
+import '../trips/trip_history_controller.dart';
 import 'app_routes.dart';
 
 GoRouter createAppRouter({
   required SessionController sessionController,
   LocationPermissionService locationPermissionService =
       const PermissionHandlerLocationPermissionService(),
+  LocationService locationService = const GeolocatorLocationService(),
+  RideFlowController? rideFlowController,
+  TripHistoryController? tripHistoryController,
+  TileProvider? tileProvider,
+  Duration findingDriverWaitDuration = FindingDriverScreen.defaultWaitDuration,
+  Duration driverArrivalDuration = DriverFoundScreen.defaultArrivalDuration,
+  Duration rideDuration = RideScreen.defaultRideDuration,
+  DateTime Function()? now,
 }) {
+  final flowController = rideFlowController ?? RideFlowController();
+  final historyController =
+      tripHistoryController ??
+      TripHistoryController(InMemoryTripHistoryStore());
+
   return GoRouter(
     initialLocation: AppRoutes.login,
     refreshListenable: sessionController,
     redirect: (context, state) {
       final isAuthRoute = AppRoutes.authPaths.contains(state.matchedLocation);
       if (sessionController.hasCompletedSession && isAuthRoute) {
-        return AppRoutes.session;
+        return AppRoutes.home;
       }
       if (!sessionController.hasCompletedSession && !isAuthRoute) {
         return AppRoutes.login;
@@ -50,12 +74,79 @@ GoRouter createAppRouter({
         builder: (context, state) => LocationPermissionScreen(
           sessionController: sessionController,
           permissionService: locationPermissionService,
+          locationService: locationService,
         ),
       ),
       GoRoute(
-        path: AppRoutes.session,
+        path: AppRoutes.home,
+        builder: (context, state) => HomeScreen(
+          sessionController: sessionController,
+          permissionService: locationPermissionService,
+          locationService: locationService,
+          tileProvider: tileProvider,
+        ),
+      ),
+      GoRoute(
+        path: AppRoutes.destination,
         builder: (context, state) =>
-            SessionPlaceholderScreen(sessionController: sessionController),
+            DestinationScreen(flowController: flowController),
+      ),
+      GoRoute(
+        path: AppRoutes.routeFare,
+        builder: (context, state) => RouteFareScreen(
+          flowController: flowController,
+          tileProvider: tileProvider,
+        ),
+      ),
+      GoRoute(
+        path: AppRoutes.findingDriver,
+        builder: (context, state) => FindingDriverScreen(
+          flowController: flowController,
+          tileProvider: tileProvider,
+          waitDuration: findingDriverWaitDuration,
+          onSearchComplete: () {
+            if (!context.mounted) {
+              return;
+            }
+            context.pushReplacement(AppRoutes.driverFound);
+          },
+        ),
+      ),
+      GoRoute(
+        path: AppRoutes.driverFound,
+        builder: (context, state) => DriverFoundScreen(
+          flowController: flowController,
+          tileProvider: tileProvider,
+          arrivalDuration: driverArrivalDuration,
+          onArrivalComplete: () {
+            if (!context.mounted) {
+              return;
+            }
+            context.pushReplacement(AppRoutes.ride);
+          },
+        ),
+      ),
+      GoRoute(
+        path: AppRoutes.ride,
+        builder: (context, state) => RideScreen(
+          flowController: flowController,
+          tileProvider: tileProvider,
+          rideDuration: rideDuration,
+          onRideComplete: () {
+            if (!context.mounted) {
+              return;
+            }
+            context.pushReplacement(AppRoutes.arrived);
+          },
+        ),
+      ),
+      GoRoute(
+        path: AppRoutes.arrived,
+        builder: (context, state) => ArrivedRatingScreen(
+          flowController: flowController,
+          tripHistoryController: historyController,
+          now: now,
+        ),
       ),
     ],
   );

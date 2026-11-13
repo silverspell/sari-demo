@@ -1,3 +1,8 @@
+@Tags(['golden'])
+library;
+
+import 'dart:io';
+
 import 'package:alchemist/alchemist.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -6,14 +11,16 @@ import 'package:sari/main.dart';
 import 'package:sari/permissions/location_permission_service.dart';
 import 'package:sari/router/app_routes.dart';
 import 'package:sari/screens/location_permission_screen.dart';
-import 'package:sari/screens/session_placeholder_screen.dart';
+import 'package:sari/screens/home_screen.dart';
 import 'package:sari/session/location_point.dart';
 import 'package:sari/session/session.dart';
 import 'package:sari/session/session_controller.dart';
 import 'package:sari/theme/sari_theme.dart';
 
 import 'support/fake_location_permission_service.dart';
+import 'support/fake_location_service.dart';
 import 'support/fake_session_store.dart';
+import 'support/fake_tile_provider.dart';
 
 const _title = 'Konumunu kullanalım';
 const _body =
@@ -31,6 +38,8 @@ const _seededSession = Session(
   surname: '',
 );
 
+const _fixedLocation = LocationPoint(latitude: 40.9901, longitude: 29.0302);
+
 String locationOf(WidgetTester tester) {
   final context = tester.element(find.byType(Scaffold).first);
   return GoRouter.of(
@@ -42,6 +51,7 @@ Future<SessionController> pumpApp(
   WidgetTester tester, {
   FakeSessionStore? store,
   FakeLocationPermissionService? permissionService,
+  FakeLocationService? locationService,
   Size size = const Size(430, 932),
 }) async {
   tester.view.physicalSize = size;
@@ -59,6 +69,8 @@ Future<SessionController> pumpApp(
       sessionController: controller,
       locationPermissionService:
           permissionService ?? FakeLocationPermissionService(),
+      locationService: locationService ?? FakeLocationService(),
+      tileProvider: FakeTileProvider(),
     ),
   );
   await tester.pumpAndSettle();
@@ -111,48 +123,19 @@ void main() {
     expect(find.byTooltip('Geri dön'), findsNothing);
   });
 
-  testWidgets(
-    'Konumu aç izin verir, Taksim koordinatını yazar ve oturuma gider',
-    (tester) async {
-      final permissionService = FakeLocationPermissionService(
-        decision: LocationPermissionDecision.granted,
-      );
-      final store = FakeSessionStore(_seededSession);
-      final controller = await pumpApp(
-        tester,
-        store: store,
-        permissionService: permissionService,
-      );
-      await goToLocationPermission(tester);
-
-      await tester.tap(find.byKey(LocationPermissionScreen.allowButtonKey));
-      await tester.pumpAndSettle();
-
-      expect(permissionService.requestCount, 1);
-      expect(
-        controller.session?.locationPermission,
-        LocationPermissionStatus.granted,
-      );
-      expect(controller.session?.location, DefaultLocations.taksimMeydani);
-      expect(controller.session?.phone, '+905551112233');
-      expect(controller.session?.name, 'Şükrü');
-      expect(controller.hasCompletedSession, isTrue);
-      expect(locationOf(tester), AppRoutes.session);
-      expect(find.byType(SessionPlaceholderScreen), findsOneWidget);
-    },
-  );
-
-  testWidgets('Konumu aç reddedilince Taksim ile oturuma gider', (
+  testWidgets('Konumu aç izin verir, gerçek konumu yazar ve oturuma gider', (
     tester,
   ) async {
     final permissionService = FakeLocationPermissionService(
-      decision: LocationPermissionDecision.denied,
+      decision: LocationPermissionDecision.granted,
     );
+    final locationService = FakeLocationService(location: _fixedLocation);
     final store = FakeSessionStore(_seededSession);
     final controller = await pumpApp(
       tester,
       store: store,
       permissionService: permissionService,
+      locationService: locationService,
     );
     await goToLocationPermission(tester);
 
@@ -160,24 +143,112 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(permissionService.requestCount, 1);
+    expect(locationService.callCount, 1);
     expect(
       controller.session?.locationPermission,
-      LocationPermissionStatus.denied,
+      LocationPermissionStatus.granted,
     );
-    expect(controller.session?.location, DefaultLocations.taksimMeydani);
-    expect(locationOf(tester), AppRoutes.session);
-    expect(find.byType(SessionPlaceholderScreen), findsOneWidget);
+    expect(controller.session?.location, _fixedLocation);
+    expect(controller.session?.phone, '+905551112233');
+    expect(controller.session?.name, 'Şükrü');
+    expect(controller.hasCompletedSession, isTrue);
+    expect(locationOf(tester), AppRoutes.home);
+    expect(find.byType(HomeScreen), findsOneWidget);
   });
 
-  testWidgets('Şimdi değil izin istemez, reddedildi ve Taksim yazar', (
-    tester,
-  ) async {
-    final permissionService = FakeLocationPermissionService();
+  testWidgets('izin verilir ama konum alınamazsa Moda yazılır', (tester) async {
+    final permissionService = FakeLocationPermissionService(
+      decision: LocationPermissionDecision.granted,
+    );
+    final locationService = FakeLocationService(location: null);
     final store = FakeSessionStore(_seededSession);
     final controller = await pumpApp(
       tester,
       store: store,
       permissionService: permissionService,
+      locationService: locationService,
+    );
+    await goToLocationPermission(tester);
+
+    await tester.tap(find.byKey(LocationPermissionScreen.allowButtonKey));
+    await tester.pumpAndSettle();
+
+    expect(locationService.callCount, 1);
+    expect(
+      controller.session?.locationPermission,
+      LocationPermissionStatus.granted,
+    );
+    expect(controller.session?.location, DefaultLocations.modaKadikoy);
+    expect(locationOf(tester), AppRoutes.home);
+  });
+
+  testWidgets('konum servisi hata verirse Moda yazılır', (tester) async {
+    final permissionService = FakeLocationPermissionService(
+      decision: LocationPermissionDecision.granted,
+    );
+    final locationService = FakeLocationService(error: Exception('konum yok'));
+    final store = FakeSessionStore(_seededSession);
+    final controller = await pumpApp(
+      tester,
+      store: store,
+      permissionService: permissionService,
+      locationService: locationService,
+    );
+    await goToLocationPermission(tester);
+
+    await tester.tap(find.byKey(LocationPermissionScreen.allowButtonKey));
+    await tester.pumpAndSettle();
+
+    expect(tester.takeException(), isNull);
+    expect(locationService.callCount, 1);
+    expect(
+      controller.session?.locationPermission,
+      LocationPermissionStatus.granted,
+    );
+    expect(controller.session?.location, DefaultLocations.modaKadikoy);
+    expect(locationOf(tester), AppRoutes.home);
+  });
+
+  testWidgets('Konumu aç reddedilince Moda ile oturuma gider ve konum servisi '
+      'çağrılmaz', (tester) async {
+    final permissionService = FakeLocationPermissionService(
+      decision: LocationPermissionDecision.denied,
+    );
+    final locationService = FakeLocationService(location: _fixedLocation);
+    final store = FakeSessionStore(_seededSession);
+    final controller = await pumpApp(
+      tester,
+      store: store,
+      permissionService: permissionService,
+      locationService: locationService,
+    );
+    await goToLocationPermission(tester);
+
+    await tester.tap(find.byKey(LocationPermissionScreen.allowButtonKey));
+    await tester.pumpAndSettle();
+
+    expect(permissionService.requestCount, 1);
+    expect(locationService.callCount, 0);
+    expect(
+      controller.session?.locationPermission,
+      LocationPermissionStatus.denied,
+    );
+    expect(controller.session?.location, DefaultLocations.modaKadikoy);
+    expect(locationOf(tester), AppRoutes.home);
+    expect(find.byType(HomeScreen), findsOneWidget);
+  });
+
+  testWidgets('Şimdi değil izin istemez, reddedildi ve Moda yazar', (
+    tester,
+  ) async {
+    final permissionService = FakeLocationPermissionService();
+    final locationService = FakeLocationService(location: _fixedLocation);
+    final store = FakeSessionStore(_seededSession);
+    final controller = await pumpApp(
+      tester,
+      store: store,
+      permissionService: permissionService,
+      locationService: locationService,
     );
     await goToLocationPermission(tester);
 
@@ -185,14 +256,15 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(permissionService.requestCount, 0);
+    expect(locationService.callCount, 0);
     expect(
       controller.session?.locationPermission,
       LocationPermissionStatus.denied,
     );
-    expect(controller.session?.location, DefaultLocations.taksimMeydani);
+    expect(controller.session?.location, DefaultLocations.modaKadikoy);
     expect(controller.hasCompletedSession, isTrue);
-    expect(locationOf(tester), AppRoutes.session);
-    expect(find.byType(SessionPlaceholderScreen), findsOneWidget);
+    expect(locationOf(tester), AppRoutes.home);
+    expect(find.byType(HomeScreen), findsOneWidget);
   });
 
   testWidgets('oturum yokken çökmeden varsayılanları yazar', (tester) async {
@@ -208,7 +280,56 @@ void main() {
 
     expect(tester.takeException(), isNull);
     expect(store.session?.locationPermission, LocationPermissionStatus.denied);
-    expect(store.session?.location, DefaultLocations.taksimMeydani);
+    expect(store.session?.location, DefaultLocations.modaKadikoy);
+  });
+
+  test('lib kaynaklarında Taksim varsayılanı kalmadı', () {
+    final dartSources = Directory('lib')
+        .listSync(recursive: true)
+        .whereType<File>()
+        .where((file) => file.path.endsWith('.dart'));
+
+    for (final file in dartSources) {
+      expect(
+        file.readAsStringSync(),
+        isNot(contains('taksimMeydani')),
+        reason: file.path,
+      );
+    }
+  });
+
+  testWidgets('radar yörünge grafiği tasarımdaki gibi çizilir', (tester) async {
+    await pumpApp(tester);
+    await goToLocationPermission(tester);
+
+    final orbitFinder = find.byKey(LocationPermissionScreen.radarOrbitKey);
+    expect(orbitFinder, findsOneWidget);
+
+    final opacity = tester.widget<Opacity>(orbitFinder);
+    expect(opacity.opacity, 0.4);
+    expect(tester.getSize(orbitFinder), const Size(220, 220));
+
+    final customPaint = tester.widget<CustomPaint>(
+      find.descendant(of: orbitFinder, matching: find.byType(CustomPaint)),
+    );
+    expect(customPaint.painter, isNotNull);
+  });
+
+  testWidgets('kompakt radar yörüngesi küçülür ve ekranda kalır', (tester) async {
+    const size = Size(375, 667);
+    await pumpApp(tester, size: size);
+    await goToLocationPermission(tester);
+
+    final orbitFinder = find.byKey(LocationPermissionScreen.radarOrbitKey);
+    expect(orbitFinder, findsOneWidget);
+    expect(tester.getSize(orbitFinder), const Size(144, 144));
+    expect(tester.takeException(), isNull);
+
+    final orbitRect = tester.getRect(orbitFinder);
+    expect(orbitRect.left, greaterThanOrEqualTo(0));
+    expect(orbitRect.top, greaterThanOrEqualTo(0));
+    expect(orbitRect.right, lessThanOrEqualTo(size.width));
+    expect(orbitRect.bottom, lessThanOrEqualTo(size.height));
   });
 
   for (final size in const [Size(375, 667), Size(430, 932)]) {

@@ -36,10 +36,11 @@ Sarı, Türkçe bir taksi çağırma demo uygulamasıdır (Flutter, iOS ve Andro
 
 - Doğrulama `devcontainer` modunda, `.devcontainer/loopflow/devcontainer.json` (Flutter 3.41.9 imajı) içinde çalışır.
 - Bağımlılıklar: `flutter pub get`.
-- Statik analiz: `flutter analyze`.
-- Testler: `flutter test` (tüm suite). Odaklı: `flutter test test/<dosya>_test.dart`.
-- Golden'lar Linux'ta `flutter test --update-goldens <dosya>` ile güncellenir; macOS'ta atlanır.
-- Komutlar `.loopflow.yml` içindeki `validation.commands` ile birebir aynıdır.
+- Komutlar `.loopflow.yml` içindeki `validation.commands` ile birebir aynıdır:
+  - `flutter analyze`
+  - `flutter test`
+  - `flutter build apk --debug`
+- Odaklı test ve golden güncelleme komutları `Test` bölümünde yer alır.
 
 ### Coding conventions
 

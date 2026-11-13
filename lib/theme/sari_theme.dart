@@ -15,6 +15,9 @@ abstract final class SariColors {
   static const textSecondary = Color(0xFF666666);
   static const success = Color(0xFF1DB954);
   static const critical = Color(0xFFE53935);
+
+  /// Kullanıcının haritadaki konumunu gösteren mavi.
+  static const userLocation = Color(0xFF2F80ED);
 }
 
 abstract final class SariRadius {
@@ -33,15 +36,18 @@ abstract final class SariSpacing {
 
 const _fontFamily = 'Inter';
 
-TextStyle _style(double size, FontWeight weight, double lineHeight,
-        [double letterSpacingEm = 0]) =>
-    TextStyle(
-      fontFamily: _fontFamily,
-      fontSize: size,
-      fontWeight: weight,
-      height: lineHeight / size,
-      letterSpacing: letterSpacingEm * size,
-    );
+TextStyle _style(
+  double size,
+  FontWeight weight,
+  double lineHeight, [
+  double letterSpacingEm = 0,
+]) => TextStyle(
+  fontFamily: _fontFamily,
+  fontSize: size,
+  fontWeight: weight,
+  height: lineHeight / size,
+  letterSpacing: letterSpacingEm * size,
+);
 
 /// DESIGN.md tipografi ölçeği, Material rollerine eşlenmiş hali.
 final sariTextTheme = TextTheme(

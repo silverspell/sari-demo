@@ -6,3 +6,5 @@ validation:
       run: flutter analyze
     - name: test
       run: flutter test
+    - name: build
+      run: flutter build apk --debug
