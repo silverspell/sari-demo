@@ -1,7 +1,32 @@
-# Uçtan uca demo akışı: telefon girişi -> OTP -> ana ekran -> taksi çağır ->
-# sürücü bulma -> yolculuk -> puanlama -> Trip History.
-# Adımlar uygulama epic'inde eklenir.
+# Uçtan uca ilk dilim: telefon girişi -> OTP -> isim -> konum izni ->
+# oturum yer tutucusu -> çıkış. Sonraki dilimler uygulama epic'inde eklenir.
 appId: tr.byteflow.sari
 ---
 - launchApp:
     clearState: true
+- assertVisible: 'Telefon numaranı gir'
+- tapOn: '5xx xxx xx xx'
+- inputText: '5551234567'
+- assertVisible: '555 123 45 67'
+- tapOn: 'Devam et'
+- assertVisible: 'Kodu gir'
+- tapOn:
+    text: '•'
+    index: 0
+- inputText: '1'
+- inputText: '2'
+- inputText: '3'
+- inputText: '4'
+- tapOn: 'Doğrula'
+- assertVisible: 'Seni nasıl çağıralım?'
+- tapOn: 'Örn: Cem'
+- inputText: 'Ayşe'
+- tapOn: 'Örn: Güler'
+- inputText: 'Yılmaz'
+- tapOn: 'Devam et'
+- assertVisible: 'Konumunu kullanalım'
+- tapOn: 'Şimdi değil'
+- assertVisible: 'Merhaba, Ayşe Yılmaz'
+- assertVisible: 'Çıkış yap'
+- tapOn: 'Çıkış yap'
+- assertVisible: 'Telefon numaranı gir'
