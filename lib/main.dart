@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import 'theme/sari_theme.dart';
+
 void main() {
   runApp(const SariApp());
 }
@@ -12,10 +14,7 @@ class SariApp extends StatelessWidget {
     return MaterialApp(
       title: 'Sarı',
       debugShowCheckedModeBanner: false,
-      theme: ThemeData(
-        fontFamily: 'Roboto',
-        colorScheme: ColorScheme.fromSeed(seedColor: const Color(0xFFFFC107)),
-      ),
+      theme: buildSariTheme(),
       home: const SplashScreen(),
     );
   }
