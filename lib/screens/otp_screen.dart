@@ -203,7 +203,7 @@ class _OtpScreenState extends State<OtpScreen> {
                       ),
                     ),
                     TextSpan(
-                      text: ' numarasına gönderildi',
+                      text: ' numarasına gönderdik',
                       style: theme.textTheme.bodyMedium?.copyWith(
                         color: SariColors.textSecondary,
                       ),
@@ -293,59 +293,69 @@ class _OtpScreenState extends State<OtpScreen> {
   }
 
   Widget _buildDigitBoxes(ThemeData theme) {
+    OutlineInputBorder digitBorder(Color? color, {double width = 1}) {
+      return OutlineInputBorder(
+        borderRadius: BorderRadius.circular(SariRadius.button),
+        borderSide: color == null
+            ? BorderSide.none
+            : BorderSide(color: color, width: width),
+      );
+    }
+
     return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
-        for (var index = 0; index < _controllers.length; index++) ...[
-          if (index > 0) const SizedBox(width: SariSpacing.sm),
-          Expanded(
-            child: SizedBox(
-              height: 72,
-              child: TextField(
-                key: OtpScreen.digitKey(index),
-                controller: _controllers[index],
-                focusNode: _focusNodes[index],
-                textAlign: TextAlign.center,
-                keyboardType: TextInputType.number,
-                inputFormatters: [
-                  FilteringTextInputFormatter.digitsOnly,
-                  LengthLimitingTextInputFormatter(1),
-                ],
-                cursorColor: SariColors.ink,
-                style: theme.textTheme.headlineMedium?.copyWith(
-                  color: _showError ? SariColors.critical : SariColors.ink,
-                ),
-                decoration: InputDecoration(
-                  counterText: '',
-                  hintText: '•',
-                  hintStyle: theme.textTheme.headlineMedium?.copyWith(
-                    color: SariColors.textSecondary,
-                  ),
-                  filled: true,
-                  fillColor: _showError
-                      ? theme.colorScheme.errorContainer.withValues(alpha: 0.4)
-                      : SariColors.surface,
-                  contentPadding: EdgeInsets.zero,
-                  enabledBorder: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(SariRadius.button),
-                    borderSide: BorderSide(
-                      color: _showError
-                          ? SariColors.critical
-                          : SariColors.border,
-                    ),
-                  ),
-                  focusedBorder: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(SariRadius.button),
-                    borderSide: BorderSide(
-                      color: _showError ? SariColors.critical : SariColors.ink,
-                      width: 1.5,
-                    ),
-                  ),
-                ),
-                onChanged: (value) => _onDigitChanged(index, value),
+        for (var index = 0; index < _controllers.length; index++)
+          SizedBox(
+            width: 64,
+            height: 72,
+            child: TextField(
+              key: OtpScreen.digitKey(index),
+              controller: _controllers[index],
+              focusNode: _focusNodes[index],
+              textAlign: TextAlign.center,
+              keyboardType: TextInputType.number,
+              inputFormatters: [
+                FilteringTextInputFormatter.digitsOnly,
+                LengthLimitingTextInputFormatter(1),
+              ],
+              cursorColor: SariColors.ink,
+              style: theme.textTheme.headlineMedium?.copyWith(
+                color: _showError ? SariColors.critical : SariColors.ink,
               ),
+              decoration: InputDecoration(
+                counterText: '',
+                hintText: '•',
+                hintStyle: theme.textTheme.headlineMedium?.copyWith(
+                  color: SariColors.textSecondary,
+                ),
+                filled: true,
+                fillColor: _showError
+                    ? theme.colorScheme.errorContainer.withValues(alpha: 0.4)
+                    : SariColors.surface,
+                contentPadding: EdgeInsets.zero,
+                enabledBorder: digitBorder(
+                  _showError ? null : SariColors.border,
+                ),
+                focusedBorder: digitBorder(
+                  _showError ? null : SariColors.ink,
+                  width: 1.5,
+                ),
+                border: digitBorder(_showError ? null : SariColors.border),
+                disabledBorder: digitBorder(
+                  _showError ? null : SariColors.border,
+                ),
+                errorBorder: digitBorder(
+                  _showError ? null : SariColors.critical,
+                ),
+                focusedErrorBorder: digitBorder(
+                  _showError ? null : SariColors.critical,
+                  width: 1.5,
+                ),
+              ),
+              onChanged: (value) => _onDigitChanged(index, value),
             ),
           ),
-        ],
       ],
     );
   }
