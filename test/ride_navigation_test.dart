@@ -5,7 +5,7 @@ import 'package:sari/data/fake_ride_data.dart';
 import 'package:sari/rides/ride_flow_controller.dart';
 import 'package:sari/router/app_router.dart';
 import 'package:sari/router/app_routes.dart';
-import 'package:sari/screens/driver_found_screen.dart';
+import 'package:sari/screens/arrived_rating_screen.dart';
 import 'package:sari/screens/finding_driver_screen.dart';
 import 'package:sari/screens/home_screen.dart';
 import 'package:sari/screens/ride_screen.dart';
@@ -64,19 +64,24 @@ void main() {
 
     expect(find.byType(FindingDriverScreen), findsOneWidget);
 
+    var sawRideScreen = false;
+    for (var attempt = 0; attempt < 50; attempt++) {
+      if (find.byType(ArrivedRatingScreen).evaluate().isNotEmpty) {
+        break;
+      }
+      await tester.pump(const Duration(milliseconds: 100));
+      if (find.byType(RideScreen).evaluate().isNotEmpty) {
+        sawRideScreen = true;
+      }
+    }
     await tester.pumpAndSettle();
 
-    expect(find.byType(DriverFoundScreen), findsNothing);
-    expect(find.byType(RideScreen), findsOneWidget);
-    expect(_locationOf(tester), AppRoutes.ride);
+    expect(sawRideScreen, isTrue);
+    expect(find.byType(ArrivedRatingScreen), findsOneWidget);
+    expect(find.byType(RideScreen), findsNothing);
+    expect(_locationOf(tester), AppRoutes.arrived);
     expect(flowController.destination, FakeRideData.kadikoyIskele);
-    expect(find.text("Kadıköy İskele'ye gidiyorsun"), findsOneWidget);
-    expect(tester.takeException(), isNull);
-
-    await tester.pump(const Duration(seconds: 2));
-
-    expect(find.byType(RideScreen), findsOneWidget);
-    expect(find.text('Varışa 0 dk'), findsOneWidget);
+    expect(find.text('Vardın!'), findsOneWidget);
     expect(tester.takeException(), isNull);
   });
 }

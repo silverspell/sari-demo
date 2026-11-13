@@ -9,6 +9,7 @@ abstract final class AppRoutes {
   static const findingDriver = '/surucu-araniyor';
   static const driverFound = '/surucu-bulundu';
   static const ride = '/yolculukta';
+  static const arrived = '/vardin';
 
   static const authPaths = <String>{login, otp, name, locationPermission};
 }

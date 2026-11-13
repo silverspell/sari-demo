@@ -5,6 +5,7 @@ import '../data/ride_class.dart';
 import '../data/route_fare_calculator.dart';
 import '../data/route_quote.dart';
 import '../session/location_point.dart';
+import 'ride_feedback_tag.dart';
 
 class RideFlowController extends ChangeNotifier {
   RideFlowController({
@@ -20,14 +21,20 @@ class RideFlowController extends ChangeNotifier {
   final RouteFareCalculator _calculator;
 
   final LocationPoint _origin;
+  final Set<RideFeedbackTag> _tags = <RideFeedbackTag>{};
   FakePlace? _destination;
   RideClass _selectedRideClass;
+  int? _rating;
 
   LocationPoint get origin => _origin;
 
   FakePlace? get destination => _destination;
 
   RideClass get selectedRideClass => _selectedRideClass;
+
+  int? get rating => _rating;
+
+  Set<RideFeedbackTag> get tags => Set.unmodifiable(_tags);
 
   RouteQuote? get quote {
     final destination = _destination;
@@ -40,6 +47,8 @@ class RideFlowController extends ChangeNotifier {
   void selectDestination(FakePlace destination) {
     _destination = destination;
     _selectedRideClass = RideClass.sari;
+    _rating = null;
+    _tags.clear();
     notifyListeners();
   }
 
@@ -48,6 +57,31 @@ class RideFlowController extends ChangeNotifier {
       return;
     }
     _selectedRideClass = rideClass;
+    notifyListeners();
+  }
+
+  void selectRating(int rating) {
+    final clamped = rating.clamp(1, 5);
+    if (_rating == clamped) {
+      return;
+    }
+    _rating = clamped;
+    notifyListeners();
+  }
+
+  void toggleTag(RideFeedbackTag tag) {
+    if (!_tags.remove(tag)) {
+      _tags.add(tag);
+    }
+    notifyListeners();
+  }
+
+  void clearFeedback() {
+    if (_rating == null && _tags.isEmpty) {
+      return;
+    }
+    _rating = null;
+    _tags.clear();
     notifyListeners();
   }
 }
