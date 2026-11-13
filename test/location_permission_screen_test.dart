@@ -298,6 +298,40 @@ void main() {
     }
   });
 
+  testWidgets('radar yörünge grafiği tasarımdaki gibi çizilir', (tester) async {
+    await pumpApp(tester);
+    await goToLocationPermission(tester);
+
+    final orbitFinder = find.byKey(LocationPermissionScreen.radarOrbitKey);
+    expect(orbitFinder, findsOneWidget);
+
+    final opacity = tester.widget<Opacity>(orbitFinder);
+    expect(opacity.opacity, 0.4);
+    expect(tester.getSize(orbitFinder), const Size(220, 220));
+
+    final customPaint = tester.widget<CustomPaint>(
+      find.descendant(of: orbitFinder, matching: find.byType(CustomPaint)),
+    );
+    expect(customPaint.painter, isNotNull);
+  });
+
+  testWidgets('kompakt radar yörüngesi küçülür ve ekranda kalır', (tester) async {
+    const size = Size(375, 667);
+    await pumpApp(tester, size: size);
+    await goToLocationPermission(tester);
+
+    final orbitFinder = find.byKey(LocationPermissionScreen.radarOrbitKey);
+    expect(orbitFinder, findsOneWidget);
+    expect(tester.getSize(orbitFinder), const Size(144, 144));
+    expect(tester.takeException(), isNull);
+
+    final orbitRect = tester.getRect(orbitFinder);
+    expect(orbitRect.left, greaterThanOrEqualTo(0));
+    expect(orbitRect.top, greaterThanOrEqualTo(0));
+    expect(orbitRect.right, lessThanOrEqualTo(size.width));
+    expect(orbitRect.bottom, lessThanOrEqualTo(size.height));
+  });
+
   for (final size in const [Size(375, 667), Size(430, 932)]) {
     testWidgets('taşma yok ${size.width.toInt()}x${size.height.toInt()}', (
       tester,
