@@ -215,10 +215,19 @@ void main() {
     ).routerDelegate.currentConfiguration.uri.toString();
     expect(location, AppRoutes.home);
     expect(tripHistory.trips, hasLength(1));
+    final recordedTrip = tripHistory.trips.single;
+    expect(recordedTrip.departureLabel, 'Moda');
+    expect(recordedTrip.distanceMeters, flow.quote!.distanceMeters);
+    expect(recordedTrip.distanceMeters, 4800);
+    expect(recordedTrip.duration, flow.quote!.duration);
+    expect(recordedTrip.duration, const Duration(minutes: 12));
     expect(
-      tripHistory.trips.single,
+      recordedTrip,
       CompletedTrip(
         destination: FakeRideData.kadikoyIskele,
+        departureLabel: FakeRideData.homeAreaLabel,
+        distanceMeters: flow.quote!.distanceMeters,
+        duration: flow.quote!.duration,
         completedAt: completedAt,
         amountLira: 185,
         driver: FakeRideData.driver,
