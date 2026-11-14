@@ -17,6 +17,7 @@ import '../session/session.dart';
 import '../session/session_controller.dart';
 import '../theme/sari_theme.dart';
 import '../widgets/coming_soon_snack_bar.dart';
+import '../widgets/menu_drawer.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({
@@ -28,6 +29,7 @@ class HomeScreen extends StatefulWidget {
     this.tileProvider,
     this.mapController,
     this.sessionOverride,
+    this.initiallyMenuOpen = false,
   });
 
   static const screenKey = Key('home-screen');
@@ -57,12 +59,18 @@ class HomeScreen extends StatefulWidget {
   final MapController? mapController;
   final Session? sessionOverride;
 
+  /// Golden testlerinde menünün animasyonsuz açık başlaması için.
+  final bool initiallyMenuOpen;
+
   @override
   State<HomeScreen> createState() => _HomeScreenState();
 }
 
-class _HomeScreenState extends State<HomeScreen> {
+class _HomeScreenState extends State<HomeScreen>
+    with SingleTickerProviderStateMixin {
   late final MapController _ownedMapController;
+  late final AnimationController _menuController;
+  bool _menuOpen = false;
   NearbyTaxis? _cachedTaxis;
   LocationPoint? _cachedCenter;
 
@@ -70,6 +78,14 @@ class _HomeScreenState extends State<HomeScreen> {
   void initState() {
     super.initState();
     _ownedMapController = MapController();
+    _menuController = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 250),
+    );
+    if (widget.initiallyMenuOpen) {
+      _menuOpen = true;
+      _menuController.value = 1;
+    }
     widget.sessionController.addListener(_handleSessionChanged);
   }
 
@@ -89,6 +105,7 @@ class _HomeScreenState extends State<HomeScreen> {
   @override
   void dispose() {
     widget.sessionController.removeListener(_handleSessionChanged);
+    _menuController.dispose();
     _ownedMapController.dispose();
     super.dispose();
   }
@@ -130,6 +147,35 @@ class _HomeScreenState extends State<HomeScreen> {
 
   void _showComingSoon(BuildContext context) {
     showComingSoonSnackBar(context);
+  }
+
+  void _openMenu() {
+    if (_menuOpen) {
+      return;
+    }
+    setState(() => _menuOpen = true);
+    _menuController.forward();
+  }
+
+  void _closeMenu() {
+    if (!_menuOpen) {
+      return;
+    }
+    _menuController.reverse().whenComplete(() {
+      if (mounted) {
+        setState(() => _menuOpen = false);
+      }
+    });
+  }
+
+  void _handleMenuNavigation(String route) {
+    _closeMenu();
+    context.push(route);
+  }
+
+  Future<void> _handleMenuLogout() async {
+    _closeMenu();
+    await widget.sessionController.clear();
   }
 
   Future<void> _handleRecenter() async {
@@ -182,8 +228,34 @@ class _HomeScreenState extends State<HomeScreen> {
         child: Column(
           children: [
             _buildHeader(theme),
-            Expanded(child: _buildMap(theme, center, taxis)),
-            _buildSheet(theme, taxis),
+            Expanded(
+              child: Stack(
+                children: [
+                  Column(
+                    children: [
+                      Expanded(child: _buildMap(theme, center, taxis)),
+                      _buildSheet(theme, taxis),
+                    ],
+                  ),
+                  if (_menuOpen)
+                    Positioned.fill(
+                      child: MenuDrawer(
+                        animation: _menuController,
+                        session: session,
+                        onClose: _closeMenu,
+                        onTripHistory: () =>
+                            _handleMenuNavigation(AppRoutes.tripHistory),
+                        onAccount: () =>
+                            _handleMenuNavigation(AppRoutes.account),
+                        onPaymentMethods: () =>
+                            _handleMenuNavigation(AppRoutes.paymentMethods),
+                        onLogout: _handleMenuLogout,
+                        onPoints: () => _showComingSoon(context),
+                      ),
+                    ),
+                ],
+              ),
+            ),
           ],
         ),
       ),
@@ -291,7 +363,7 @@ class _HomeScreenState extends State<HomeScreen> {
             buttonKey: HomeScreen.menuButtonKey,
             icon: Icons.menu,
             tooltip: 'Menüyü Aç',
-            onTap: () => _showComingSoon(context),
+            onTap: _openMenu,
           ),
         ),
         Positioned(
