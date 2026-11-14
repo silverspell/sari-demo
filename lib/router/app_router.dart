@@ -2,6 +2,7 @@ import 'package:flutter_map/flutter_map.dart';
 import 'package:go_router/go_router.dart';
 
 import '../location/location_service.dart';
+import '../payments/payment_method_controller.dart';
 import '../permissions/location_permission_service.dart';
 import '../rides/ride_flow_controller.dart';
 import '../screens/arrived_rating_screen.dart';
@@ -27,6 +28,7 @@ GoRouter createAppRouter({
   LocationService locationService = const GeolocatorLocationService(),
   RideFlowController? rideFlowController,
   TripHistoryController? tripHistoryController,
+  PaymentMethodController? paymentMethodController,
   TileProvider? tileProvider,
   Duration findingDriverWaitDuration = FindingDriverScreen.defaultWaitDuration,
   Duration driverArrivalDuration = DriverFoundScreen.defaultArrivalDuration,
@@ -145,6 +147,7 @@ GoRouter createAppRouter({
         builder: (context, state) => ArrivedRatingScreen(
           flowController: flowController,
           tripHistoryController: historyController,
+          paymentMethodController: paymentMethodController,
           now: now,
         ),
       ),

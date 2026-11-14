@@ -6,6 +6,7 @@ import '../data/fake_ride_data.dart';
 import '../data/ride_class.dart';
 import '../data/route_fare_calculator.dart';
 import '../data/route_quote.dart';
+import '../payments/payment_method_controller.dart';
 import '../rides/ride_feedback_tag.dart';
 import '../rides/ride_flow_controller.dart';
 import '../router/app_routes.dart';
@@ -20,6 +21,7 @@ class ArrivedRatingScreen extends StatefulWidget {
     super.key,
     this.flowController,
     this.tripHistoryController,
+    this.paymentMethodController,
     this.now,
   });
 
@@ -29,6 +31,8 @@ class ArrivedRatingScreen extends StatefulWidget {
   static const fareCardKey = Key('arrived-rating-fare-card');
   static const fareTextKey = Key('arrived-rating-fare-text');
   static const paymentRowKey = Key('arrived-rating-payment-row');
+  static const paymentLabelKey = Key('arrived-rating-payment-label');
+  static const paymentBrandKey = Key('arrived-rating-payment-brand');
   static const driverCardKey = Key('arrived-rating-driver-card');
   static const ratingCardKey = Key('arrived-rating-rating-card');
   static const finishButtonKey = Key('arrived-rating-finish-button');
@@ -41,6 +45,7 @@ class ArrivedRatingScreen extends StatefulWidget {
 
   final RideFlowController? flowController;
   final TripHistoryController? tripHistoryController;
+  final PaymentMethodController? paymentMethodController;
   final DateTime Function()? now;
 
   @override
@@ -50,17 +55,19 @@ class ArrivedRatingScreen extends StatefulWidget {
 class _ArrivedRatingScreenState extends State<ArrivedRatingScreen> {
   late final RideFlowController _ownedFlowController;
   late final TripHistoryController _ownedTripHistoryController;
+  late final PaymentMethodController _ownedPaymentMethodController;
 
   bool _saving = false;
 
-  RideFlowController get _flow =>
-      widget.flowController ?? _ownedFlowController;
+  RideFlowController get _flow => widget.flowController ?? _ownedFlowController;
 
   TripHistoryController get _tripHistory =>
       widget.tripHistoryController ?? _ownedTripHistoryController;
 
-  FakePlace get _destination =>
-      _flow.destination ?? FakeRideData.kadikoyIskele;
+  PaymentMethodController get _paymentMethod =>
+      widget.paymentMethodController ?? _ownedPaymentMethodController;
+
+  FakePlace get _destination => _flow.destination ?? FakeRideData.kadikoyIskele;
 
   RouteQuote get _quote {
     final quote = _flow.quote;
@@ -80,8 +87,10 @@ class _ArrivedRatingScreenState extends State<ArrivedRatingScreen> {
     _ownedTripHistoryController = TripHistoryController(
       InMemoryTripHistoryStore(),
     );
+    _ownedPaymentMethodController = PaymentMethodController();
     _ensureDestination();
     _flow.addListener(_handleFlowChanged);
+    _paymentMethod.addListener(_handlePaymentMethodChanged);
   }
 
   @override
@@ -94,13 +103,20 @@ class _ArrivedRatingScreenState extends State<ArrivedRatingScreen> {
       _ensureDestination();
       _flow.addListener(_handleFlowChanged);
     }
+    if (oldWidget.paymentMethodController != widget.paymentMethodController) {
+      (oldWidget.paymentMethodController ?? _ownedPaymentMethodController)
+          .removeListener(_handlePaymentMethodChanged);
+      _paymentMethod.addListener(_handlePaymentMethodChanged);
+    }
   }
 
   @override
   void dispose() {
     _flow.removeListener(_handleFlowChanged);
+    _paymentMethod.removeListener(_handlePaymentMethodChanged);
     _ownedFlowController.dispose();
     _ownedTripHistoryController.dispose();
+    _ownedPaymentMethodController.dispose();
     super.dispose();
   }
 
@@ -111,6 +127,13 @@ class _ArrivedRatingScreenState extends State<ArrivedRatingScreen> {
   }
 
   void _handleFlowChanged() {
+    if (!mounted) {
+      return;
+    }
+    setState(() {});
+  }
+
+  void _handlePaymentMethodChanged() {
     if (!mounted) {
       return;
     }
@@ -341,6 +364,8 @@ class _ArrivedRatingScreenState extends State<ArrivedRatingScreen> {
   }
 
   Widget _buildFareCard(ThemeData theme, RouteQuote quote) {
+    final payment = _paymentMethod.selected;
+
     return Container(
       key: ArrivedRatingScreen.fareCardKey,
       padding: const EdgeInsets.all(SariSpacing.md),
@@ -421,13 +446,15 @@ class _ArrivedRatingScreenState extends State<ArrivedRatingScreen> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        '•••• 4242',
+                        payment.label,
+                        key: ArrivedRatingScreen.paymentLabelKey,
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
                         style: theme.textTheme.labelMedium,
                       ),
                       Text(
-                        'Mastercard',
+                        payment.isCash ? 'Sürücüye elden ödeme' : payment.brand,
+                        key: ArrivedRatingScreen.paymentBrandKey,
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
                         style: theme.textTheme.bodySmall?.copyWith(
@@ -531,11 +558,7 @@ class _ArrivedRatingScreenState extends State<ArrivedRatingScreen> {
             ),
           ),
           const SizedBox(width: SariSpacing.sm),
-          Icon(
-            Icons.local_taxi,
-            size: 20,
-            color: SariColors.textSecondary,
-          ),
+          Icon(Icons.local_taxi, size: 20, color: SariColors.textSecondary),
         ],
       ),
     );
@@ -651,11 +674,7 @@ class _ArrivedRatingScreenState extends State<ArrivedRatingScreen> {
                   ),
                 ),
                 const SizedBox(width: SariSpacing.xs),
-                const Icon(
-                  Icons.done_all,
-                  size: 20,
-                  color: SariColors.surface,
-                ),
+                const Icon(Icons.done_all, size: 20, color: SariColors.surface),
               ],
             ),
           ),
