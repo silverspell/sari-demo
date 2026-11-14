@@ -55,3 +55,9 @@ appId: tr.byteflow.sari
 - tapOn: 'Bitir'
 - assertVisible: 'Merhaba Ayşe'
 - assertVisible: 'Nereye?'
+# Ana ekrandan menüyü açıp Yolculuklarım ekranına geçiş.
+- tapOn: 'Menüyü Aç'
+- assertVisible: 'Yolculuklarım'
+- tapOn: 'Yolculuklarım'
+- assertVisible: 'Yolculuklarım'
+- assertVisible: 'Bu Ayki Yolculuklar'
