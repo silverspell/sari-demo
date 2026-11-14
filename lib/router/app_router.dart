@@ -5,6 +5,7 @@ import '../location/location_service.dart';
 import '../payments/payment_method_controller.dart';
 import '../permissions/location_permission_service.dart';
 import '../rides/ride_flow_controller.dart';
+import '../screens/account_screen.dart';
 import '../screens/arrived_rating_screen.dart';
 import '../screens/destination_screen.dart';
 import '../screens/driver_found_screen.dart';
@@ -150,6 +151,11 @@ GoRouter createAppRouter({
           paymentMethodController: paymentMethodController,
           now: now,
         ),
+      ),
+      GoRoute(
+        path: AppRoutes.account,
+        builder: (context, state) =>
+            AccountScreen(sessionController: sessionController),
       ),
     ],
   );
