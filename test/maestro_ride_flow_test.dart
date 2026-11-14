@@ -4,7 +4,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:yaml/yaml.dart';
 
 void main() {
-  test('ride_flow.yaml girişten puanlamaya kadar adımları sırayla içerir', () {
+  test('ride_flow.yaml girişten Yolculuklarım ekranına kadar adımları sırayla içerir', () {
     final source = File('.maestro/ride_flow.yaml').readAsStringSync();
     final documents = loadYamlDocuments(source);
 
@@ -58,6 +58,11 @@ void main() {
       'Bitir',
       'Merhaba Ayşe',
       'Nereye?',
+      'Menüyü Aç',
+      'Yolculuklarım',
+      'Yolculuklarım',
+      'Yolculuklarım',
+      'Bu Ayki Yolculuklar',
     ];
 
     var cursor = 0;
