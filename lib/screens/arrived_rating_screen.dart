@@ -141,6 +141,9 @@ class _ArrivedRatingScreenState extends State<ArrivedRatingScreen> {
     final quote = _quote;
     final trip = CompletedTrip(
       destination: _flow.destination ?? FakeRideData.kadikoyIskele,
+      departureLabel: FakeRideData.homeAreaLabel,
+      distanceMeters: quote.distanceMeters,
+      duration: quote.duration,
       completedAt: widget.now?.call() ?? DateTime.now(),
       amountLira: quote.fareFor(_flow.selectedRideClass),
       driver: FakeRideData.driver,

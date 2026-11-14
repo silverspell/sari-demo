@@ -11,6 +11,9 @@ void main() {
       final completedAt = DateTime(2026, 11, 13, 9, 30);
       final trip = CompletedTrip(
         destination: FakeRideData.kadikoyIskele,
+        departureLabel: 'Moda',
+        distanceMeters: 4800,
+        duration: const Duration(minutes: 12),
         completedAt: completedAt,
         amountLira: 185,
         driver: FakeRideData.driver,
@@ -22,6 +25,9 @@ void main() {
       expect(controller.trips, hasLength(1));
       final saved = controller.trips.single;
       expect(saved.destination, FakeRideData.kadikoyIskele);
+      expect(saved.departureLabel, 'Moda');
+      expect(saved.distanceMeters, 4800);
+      expect(saved.duration, const Duration(minutes: 12));
       expect(saved.completedAt, completedAt);
       expect(saved.amountLira, 185);
       expect(saved.driver, FakeRideData.driver);
