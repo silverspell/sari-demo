@@ -16,6 +16,11 @@ abstract final class SariColors {
   static const success = Color(0xFF1DB954);
   static const critical = Color(0xFFE53935);
 
+  /// Kart markası renkleri; ekranlarda sabit hex yazılmaz.
+  static const visaBlue = Color(0xFF1A1F71);
+  static const mastercardRed = Color(0xFFEB001B);
+  static const mastercardOrange = Color(0xFFF79E1B);
+
   /// Kullanıcının haritadaki konumunu gösteren mavi.
   static const userLocation = Color(0xFF2F80ED);
 }

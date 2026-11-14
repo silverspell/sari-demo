@@ -11,6 +11,7 @@ abstract final class AppRoutes {
   static const ride = '/yolculukta';
   static const arrived = '/vardin';
   static const account = '/hesabim';
+  static const paymentMethods = '/odeme-yontemleri';
 
   static const authPaths = <String>{login, otp, name, locationPermission};
 }
