@@ -3,6 +3,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
 import 'package:sari/data/fake_ride_data.dart';
 import 'package:sari/data/ride_class.dart';
+import 'package:sari/payments/payment_method_controller.dart';
 import 'package:sari/rides/ride_feedback_tag.dart';
 import 'package:sari/rides/ride_flow_controller.dart';
 import 'package:sari/router/app_router.dart';
@@ -32,6 +33,7 @@ Future<void> pumpArrived(
   WidgetTester tester, {
   RideFlowController? flowController,
   TripHistoryController? tripHistoryController,
+  PaymentMethodController? paymentMethodController,
   DateTime Function()? now,
   Size size = const Size(430, 932),
 }) async {
@@ -46,6 +48,7 @@ Future<void> pumpArrived(
       home: ArrivedRatingScreen(
         flowController: flowController,
         tripHistoryController: tripHistoryController,
+        paymentMethodController: paymentMethodController,
         now: now,
       ),
     ),
@@ -55,62 +58,99 @@ Future<void> pumpArrived(
 }
 
 String fareText(WidgetTester tester) {
-  final text = tester.widget<Text>(
-    find.byKey(ArrivedRatingScreen.fareTextKey),
-  );
+  final text = tester.widget<Text>(find.byKey(ArrivedRatingScreen.fareTextKey));
   return text.data ?? '';
 }
 
 void main() {
-  testWidgets('tamamlanan yolculuğun tutar, ödeme ve sürücü bilgisini gösterir', (
-    tester,
-  ) async {
-    final flow = RideFlowController()
-      ..selectDestination(FakeRideData.kadikoyIskele);
+  testWidgets(
+    'tamamlanan yolculuğun tutar, ödeme ve sürücü bilgisini gösterir',
+    (tester) async {
+      final flow = RideFlowController()
+        ..selectDestination(FakeRideData.kadikoyIskele);
 
-    await pumpArrived(tester, flowController: flow);
+      await pumpArrived(tester, flowController: flow);
 
-    expect(find.byKey(ArrivedRatingScreen.screenKey), findsOneWidget);
-    expect(find.text('Yolculuk Tamamlandı'), findsOneWidget);
-    expect(find.byKey(ArrivedRatingScreen.completionBadgeKey), findsOneWidget);
-    expect(find.text('Vardın!'), findsOneWidget);
-    expect(
-      find.text('Kadıköy İskele varış noktasına ulaştın'),
-      findsOneWidget,
-    );
-    expect(find.text('TOPLAM TUTAR'), findsOneWidget);
-    expect(find.text('4,8 km • 12 dk'), findsOneWidget);
-    expect(fareText(tester), '₺185,00');
-    expect(find.byKey(ArrivedRatingScreen.paymentRowKey), findsOneWidget);
-    expect(find.text('•••• 4242'), findsOneWidget);
-    expect(find.text('Mastercard'), findsOneWidget);
-    expect(find.text('Ödendi'), findsOneWidget);
-    expect(find.byKey(ArrivedRatingScreen.driverCardKey), findsOneWidget);
-    expect(find.text('MY'), findsOneWidget);
-    expect(find.text('Mehmet Y.'), findsOneWidget);
-    expect(find.text('4,9'), findsOneWidget);
-    expect(find.text('34 TK 1923 • Sarı Taksi'), findsOneWidget);
-    expect(find.byKey(ArrivedRatingScreen.ratingCardKey), findsOneWidget);
-    expect(find.text('Yolculuğunu puanla'), findsOneWidget);
-    expect(
-      find.text('Sürücüyü değerlendirerek Sarı kalitesini destekle'),
-      findsOneWidget,
-    );
-    for (var star = 1; star <= 5; star++) {
-      expect(find.byKey(ArrivedRatingScreen.starButtonKey(star)), findsOneWidget);
-    }
-    expect(find.byIcon(Icons.star_border_rounded), findsNWidgets(5));
-    expect(find.byIcon(Icons.star_rounded), findsNothing);
-    for (final tag in RideFeedbackTag.values) {
-      expect(find.byKey(ArrivedRatingScreen.tagKey(tag)), findsOneWidget);
-      expect(find.text(tag.label), findsOneWidget);
-    }
-    expect(find.byKey(ArrivedRatingScreen.finishButtonKey), findsOneWidget);
-    expect(find.text('Bitir'), findsOneWidget);
-    expect(find.byKey(ArrivedRatingScreen.emailButtonKey), findsOneWidget);
-    expect(find.text('Faturayı E-Posta ile Gönder'), findsOneWidget);
-    expect(tester.takeException(), isNull);
-  });
+      expect(find.byKey(ArrivedRatingScreen.screenKey), findsOneWidget);
+      expect(find.text('Yolculuk Tamamlandı'), findsOneWidget);
+      expect(
+        find.byKey(ArrivedRatingScreen.completionBadgeKey),
+        findsOneWidget,
+      );
+      expect(find.text('Vardın!'), findsOneWidget);
+      expect(
+        find.text('Kadıköy İskele varış noktasına ulaştın'),
+        findsOneWidget,
+      );
+      expect(find.text('TOPLAM TUTAR'), findsOneWidget);
+      expect(find.text('4,8 km • 12 dk'), findsOneWidget);
+      expect(fareText(tester), '₺185,00');
+      expect(find.byKey(ArrivedRatingScreen.paymentRowKey), findsOneWidget);
+      expect(find.text('•••• 4242'), findsOneWidget);
+      expect(find.text('Visa'), findsOneWidget);
+      expect(find.text('Ödendi'), findsOneWidget);
+      expect(find.byKey(ArrivedRatingScreen.driverCardKey), findsOneWidget);
+      expect(find.text('MY'), findsOneWidget);
+      expect(find.text('Mehmet Y.'), findsOneWidget);
+      expect(find.text('4,9'), findsOneWidget);
+      expect(find.text('34 TK 1923 • Sarı Taksi'), findsOneWidget);
+      expect(find.byKey(ArrivedRatingScreen.ratingCardKey), findsOneWidget);
+      expect(find.text('Yolculuğunu puanla'), findsOneWidget);
+      expect(
+        find.text('Sürücüyü değerlendirerek Sarı kalitesini destekle'),
+        findsOneWidget,
+      );
+      for (var star = 1; star <= 5; star++) {
+        expect(
+          find.byKey(ArrivedRatingScreen.starButtonKey(star)),
+          findsOneWidget,
+        );
+      }
+      expect(find.byIcon(Icons.star_border_rounded), findsNWidgets(5));
+      expect(find.byIcon(Icons.star_rounded), findsNothing);
+      for (final tag in RideFeedbackTag.values) {
+        expect(find.byKey(ArrivedRatingScreen.tagKey(tag)), findsOneWidget);
+        expect(find.text(tag.label), findsOneWidget);
+      }
+      expect(find.byKey(ArrivedRatingScreen.finishButtonKey), findsOneWidget);
+      expect(find.text('Bitir'), findsOneWidget);
+      expect(find.byKey(ArrivedRatingScreen.emailButtonKey), findsOneWidget);
+      expect(find.text('Faturayı E-Posta ile Gönder'), findsOneWidget);
+      expect(tester.takeException(), isNull);
+    },
+  );
+
+  testWidgets(
+    'AC2: değiştirilen varsayılan ödeme yöntemini Vardın ekranında gösterir',
+    (tester) async {
+      final flow = RideFlowController()
+        ..selectDestination(FakeRideData.kadikoyIskele);
+      final payments = PaymentMethodController(
+        initialMethod: FakeRideData.mastercard5310,
+      );
+      addTearDown(payments.dispose);
+
+      await pumpArrived(
+        tester,
+        flowController: flow,
+        paymentMethodController: payments,
+      );
+
+      expect(find.byKey(ArrivedRatingScreen.paymentRowKey), findsOneWidget);
+      expect(find.text('•••• 5310'), findsOneWidget);
+      expect(find.text('Mastercard'), findsOneWidget);
+      expect(find.text('Ödendi'), findsOneWidget);
+      expect(find.byIcon(Icons.check_circle), findsOneWidget);
+
+      payments.select(FakeRideData.nakit);
+      await tester.pump();
+
+      expect(find.text('Nakit'), findsOneWidget);
+      expect(find.text('Sürücüye elden ödeme'), findsOneWidget);
+      expect(find.text('Ödendi'), findsOneWidget);
+      expect(tester.takeException(), isNull);
+    },
+  );
 
   testWidgets('Turkuaz sınıfında toplam tutar Turkuaz ücretidir', (
     tester,
@@ -182,11 +222,16 @@ void main() {
     final flow = RideFlowController()
       ..selectDestination(FakeRideData.kadikoyIskele);
     final tripHistory = TripHistoryController(InMemoryTripHistoryStore());
+    final payments = PaymentMethodController(
+      initialMethod: FakeRideData.mastercard5310,
+    );
+    addTearDown(payments.dispose);
     final completedAt = DateTime(2026, 11, 13, 9, 30);
     final router = createAppRouter(
       sessionController: sessionController,
       rideFlowController: flow,
       tripHistoryController: tripHistory,
+      paymentMethodController: payments,
       tileProvider: FakeTileProvider(),
       now: () => completedAt,
     );
@@ -202,6 +247,9 @@ void main() {
     GoRouter.of(context).go(AppRoutes.arrived);
     await tester.pumpAndSettle();
     expect(find.byKey(ArrivedRatingScreen.screenKey), findsOneWidget);
+    expect(find.text('•••• 5310'), findsOneWidget);
+    expect(find.text('Mastercard'), findsOneWidget);
+    expect(find.text('Ödendi'), findsOneWidget);
 
     await tester.tap(find.byKey(ArrivedRatingScreen.starButtonKey(4)));
     await tester.pump();
@@ -215,10 +263,19 @@ void main() {
     ).routerDelegate.currentConfiguration.uri.toString();
     expect(location, AppRoutes.home);
     expect(tripHistory.trips, hasLength(1));
+    final recordedTrip = tripHistory.trips.single;
+    expect(recordedTrip.departureLabel, 'Moda');
+    expect(recordedTrip.distanceMeters, flow.quote!.distanceMeters);
+    expect(recordedTrip.distanceMeters, 4800);
+    expect(recordedTrip.duration, flow.quote!.duration);
+    expect(recordedTrip.duration, const Duration(minutes: 12));
     expect(
-      tripHistory.trips.single,
+      recordedTrip,
       CompletedTrip(
         destination: FakeRideData.kadikoyIskele,
+        departureLabel: FakeRideData.homeAreaLabel,
+        distanceMeters: flow.quote!.distanceMeters,
+        duration: flow.quote!.duration,
         completedAt: completedAt,
         amountLira: 185,
         driver: FakeRideData.driver,
@@ -264,7 +321,9 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(
-        tester.getBottomLeft(find.byKey(ArrivedRatingScreen.finishButtonKey)).dy,
+        tester
+            .getBottomLeft(find.byKey(ArrivedRatingScreen.finishButtonKey))
+            .dy,
         lessThanOrEqualTo(size.height),
       );
       expect(tester.takeException(), isNull);

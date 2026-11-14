@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import 'location/location_service.dart';
+import 'payments/payment_method_controller.dart';
 import 'permissions/location_permission_service.dart';
 import 'rides/ride_flow_controller.dart';
 import 'router/app_router.dart';
@@ -32,6 +33,7 @@ class SariApp extends StatefulWidget {
     this.locationService = const GeolocatorLocationService(),
     this.rideFlowController,
     this.tripHistoryController,
+    this.paymentMethodController,
     this.tileProvider,
   });
 
@@ -40,6 +42,7 @@ class SariApp extends StatefulWidget {
   final LocationService locationService;
   final RideFlowController? rideFlowController;
   final TripHistoryController? tripHistoryController;
+  final PaymentMethodController? paymentMethodController;
   final TileProvider? tileProvider;
 
   @override
@@ -50,6 +53,7 @@ class _SariAppState extends State<SariApp> {
   late GoRouter _router;
   RideFlowController? _ownedRideFlowController;
   TripHistoryController? _ownedTripHistoryController;
+  PaymentMethodController? _ownedPaymentMethodController;
 
   RideFlowController get _rideFlowController =>
       widget.rideFlowController ??
@@ -61,11 +65,16 @@ class _SariAppState extends State<SariApp> {
         InMemoryTripHistoryStore(),
       ));
 
+  PaymentMethodController get _paymentMethodController =>
+      widget.paymentMethodController ??
+      (_ownedPaymentMethodController ??= PaymentMethodController());
+
   @override
   void initState() {
     super.initState();
     _ensureRideFlowController();
     _ensureTripHistoryController();
+    _ensurePaymentMethodController();
     _router = _createRouter();
   }
 
@@ -76,8 +85,11 @@ class _SariAppState extends State<SariApp> {
         oldWidget.rideFlowController != widget.rideFlowController;
     final historyChanged =
         oldWidget.tripHistoryController != widget.tripHistoryController;
+    final paymentChanged =
+        oldWidget.paymentMethodController != widget.paymentMethodController;
     if (flowChanged ||
         historyChanged ||
+        paymentChanged ||
         oldWidget.sessionController != widget.sessionController ||
         oldWidget.locationPermissionService !=
             widget.locationPermissionService ||
@@ -92,6 +104,11 @@ class _SariAppState extends State<SariApp> {
         _ownedTripHistoryController?.dispose();
         _ownedTripHistoryController = null;
         _ensureTripHistoryController();
+      }
+      if (paymentChanged) {
+        _ownedPaymentMethodController?.dispose();
+        _ownedPaymentMethodController = null;
+        _ensurePaymentMethodController();
       }
       _router.dispose();
       _router = _createRouter();
@@ -112,12 +129,19 @@ class _SariAppState extends State<SariApp> {
     }
   }
 
+  void _ensurePaymentMethodController() {
+    if (widget.paymentMethodController == null) {
+      _ownedPaymentMethodController ??= PaymentMethodController();
+    }
+  }
+
   GoRouter _createRouter() => createAppRouter(
     sessionController: widget.sessionController,
     locationPermissionService: widget.locationPermissionService,
     locationService: widget.locationService,
     rideFlowController: _rideFlowController,
     tripHistoryController: _tripHistoryController,
+    paymentMethodController: _paymentMethodController,
     tileProvider: widget.tileProvider,
   );
 
@@ -126,6 +150,7 @@ class _SariAppState extends State<SariApp> {
     _router.dispose();
     _ownedRideFlowController?.dispose();
     _ownedTripHistoryController?.dispose();
+    _ownedPaymentMethodController?.dispose();
     super.dispose();
   }
 

@@ -1,6 +1,7 @@
 import '../session/location_point.dart';
 import 'fake_driver.dart';
 import 'fake_place.dart';
+import 'payment_method.dart';
 
 abstract final class FakeRideData {
   static const kadikoyIskele = FakePlace(
@@ -61,6 +62,39 @@ abstract final class FakeRideData {
   );
 
   static const savedPlaces = <FakePlace>[ev, isYeri];
+
+  static const visa4242 = PaymentMethod(
+    id: 'visa-4242',
+    label: '•••• 4242',
+    brand: 'Visa',
+    expiryLabel: '08/28',
+    isDefault: true,
+  );
+
+  static const mastercard5310 = PaymentMethod(
+    id: 'mastercard-5310',
+    label: '•••• 5310',
+    brand: 'Mastercard',
+    expiryLabel: '11/26',
+  );
+
+  static const nakit = PaymentMethod(
+    id: 'nakit',
+    label: 'Nakit',
+    brand: 'Nakit',
+  );
+
+  static const walletBalanceLabel = '₺340,50';
+  static const walletAutoTopUpLabel = 'Otomatik yükleme aktif';
+
+  static const paymentMethods = <PaymentMethod>[
+    visa4242,
+    mastercard5310,
+    nakit,
+  ];
+
+  static PaymentMethod get defaultPaymentMethod =>
+      paymentMethods.firstWhere((method) => method.isDefault);
 
   static const driver = FakeDriver(
     name: 'Mehmet Y.',

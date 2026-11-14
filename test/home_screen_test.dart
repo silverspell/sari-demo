@@ -10,6 +10,7 @@ import 'package:sari/session/location_point.dart';
 import 'package:sari/session/session.dart';
 import 'package:sari/session/session_controller.dart';
 import 'package:sari/theme/sari_theme.dart';
+import 'package:sari/widgets/menu_drawer.dart';
 
 import 'support/fake_location_permission_service.dart';
 import 'support/fake_location_service.dart';
@@ -195,7 +196,7 @@ void main() {
     expect(tester.takeException(), isNull);
   });
 
-  testWidgets('bildirim, avatar, Ekle ve menü Yakında bildirimi gösterir', (
+  testWidgets('bildirim, avatar ve Ekle Yakında bildirimi gösterir', (
     tester,
   ) async {
     await pumpHome(tester);
@@ -204,7 +205,6 @@ void main() {
       HomeScreen.notificationButtonKey,
       HomeScreen.avatarButtonKey,
       HomeScreen.addChipKey,
-      HomeScreen.menuButtonKey,
     ]) {
       await tester.tap(find.byKey(key));
       await tester.pump();
@@ -377,6 +377,137 @@ void main() {
     expect(locationService.callCount, 1);
     expect(mapController.camera.center, before);
     expect(tester.takeException(), isNull);
+  });
+
+  testWidgets('AC1: menü oturum bilgileri, rozet, puan ve sürümü gösterir', (
+    tester,
+  ) async {
+    await pumpHome(tester);
+
+    await tester.tap(find.byKey(HomeScreen.menuButtonKey));
+    await tester.pumpAndSettle();
+
+    expect(find.byKey(MenuDrawer.panelKey), findsOneWidget);
+    expect(find.byKey(MenuDrawer.scrimKey), findsOneWidget);
+    expect(find.byType(FlutterMap), findsOneWidget);
+    expect(find.text('Yolcu Profili'), findsOneWidget);
+    expect(find.byKey(MenuDrawer.avatarKey), findsOneWidget);
+    expect(
+      tester.widget<Text>(find.byKey(MenuDrawer.avatarInitialsKey)).data,
+      'AY',
+    );
+    expect(find.byKey(MenuDrawer.verifiedBadgeKey), findsOneWidget);
+    expect(
+      tester.widget<Text>(find.byKey(MenuDrawer.nameKey)).data,
+      'Ayşe Yılmaz',
+    );
+    expect(
+      tester.widget<Text>(find.byKey(MenuDrawer.phoneKey)).data,
+      '+90 555 111 22 33',
+    );
+    expect(tester.widget<Text>(find.byKey(MenuDrawer.ratingKey)).data, '4,96');
+    expect(find.byKey(MenuDrawer.pointsCardKey), findsOneWidget);
+    expect(find.text('Sarı Puan: 420 ₺'), findsOneWidget);
+    expect(find.text('Sonraki sürüşte 30 ₺ indirim'), findsOneWidget);
+    expect(
+      tester.widget<Text>(find.byKey(MenuDrawer.versionKey)).data,
+      'v2.4.0',
+    );
+    expect(tester.takeException(), isNull);
+  });
+
+  testWidgets('AC2: kapat butonu ve karartılmış zemin menüyü kapatır', (
+    tester,
+  ) async {
+    await pumpHome(tester);
+
+    await tester.tap(find.byKey(HomeScreen.menuButtonKey));
+    await tester.pumpAndSettle();
+    expect(find.byKey(MenuDrawer.panelKey), findsOneWidget);
+
+    await tester.tap(find.byKey(MenuDrawer.closeButtonKey));
+    await tester.pumpAndSettle();
+
+    expect(find.byKey(MenuDrawer.panelKey), findsNothing);
+    expect(find.byKey(HomeScreen.screenKey), findsOneWidget);
+    expect(find.text('Merhaba Ayşe'), findsOneWidget);
+
+    await tester.tap(find.byKey(HomeScreen.menuButtonKey));
+    await tester.pumpAndSettle();
+    expect(find.byKey(MenuDrawer.panelKey), findsOneWidget);
+
+    await tester.tap(find.byKey(MenuDrawer.scrimKey));
+    await tester.pumpAndSettle();
+
+    expect(find.byKey(MenuDrawer.panelKey), findsNothing);
+    expect(find.byKey(HomeScreen.screenKey), findsOneWidget);
+    expect(tester.takeException(), isNull);
+  });
+
+  testWidgets('AC5: Sarı Puan kartı Yakında bildirimi gösterir', (
+    tester,
+  ) async {
+    await pumpHome(tester);
+
+    await tester.tap(find.byKey(HomeScreen.menuButtonKey));
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.byKey(MenuDrawer.pointsCardKey));
+    await tester.pump();
+
+    expect(find.text('Yakında'), findsOneWidget);
+    expect(find.byKey(MenuDrawer.panelKey), findsOneWidget);
+
+    await tester.pumpAndSettle();
+    await tester.pump(const Duration(seconds: 3));
+    await tester.pumpAndSettle();
+    expect(tester.takeException(), isNull);
+  });
+
+  for (final size in const [Size(375, 667), Size(430, 932)]) {
+    testWidgets('menü taşmaz ${size.width.toInt()}x${size.height.toInt()}', (
+      tester,
+    ) async {
+      await pumpHome(tester, size: size);
+
+      await tester.tap(find.byKey(HomeScreen.menuButtonKey));
+      await tester.pumpAndSettle();
+
+      expect(tester.takeException(), isNull);
+      expect(find.byKey(MenuDrawer.logoutButtonKey), findsOneWidget);
+      expect(find.byKey(MenuDrawer.versionKey), findsOneWidget);
+
+      final panel = tester.getRect(find.byKey(MenuDrawer.panelKey));
+      final points = tester.getRect(find.byKey(MenuDrawer.pointsCardKey));
+      final logout = tester.getRect(find.byKey(MenuDrawer.logoutButtonKey));
+      expect(points.overlaps(logout), isFalse);
+      expect(panel.contains(points.center), isTrue);
+      expect(panel.contains(logout.center), isTrue);
+      expect(logout.bottom, lessThanOrEqualTo(size.height));
+    });
+  }
+
+  testWidgets('uzun ad ve telefon menüyü taşırmaz', (tester) async {
+    await pumpHome(
+      tester,
+      session: const Session(
+        phone: '+905551112233',
+        name: 'Abdurrahman',
+        surname: 'Şahinoğlu',
+        locationPermission: LocationPermissionStatus.granted,
+        location: DefaultLocations.modaKadikoy,
+      ),
+      size: const Size(375, 667),
+    );
+
+    await tester.tap(find.byKey(HomeScreen.menuButtonKey));
+    await tester.pumpAndSettle();
+
+    expect(tester.takeException(), isNull);
+    expect(find.byKey(MenuDrawer.logoutButtonKey), findsOneWidget);
+    final name = tester.widget<Text>(find.byKey(MenuDrawer.nameKey));
+    expect(name.maxLines, 1);
+    expect(name.overflow, TextOverflow.ellipsis);
   });
 
   for (final size in const [Size(375, 667), Size(430, 932)]) {

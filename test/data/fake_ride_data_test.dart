@@ -55,5 +55,32 @@ void main() {
       expect(names, containsAll(<String>['Ev', 'İş']));
       expect(isYeri.address, contains('Levent'));
     });
+
+    test(
+      'AC1: sahte ödeme listesi Visa 4242 varsayılan, Mastercard 5310 ve Nakit içerir',
+      () {
+        final methods = FakeRideData.paymentMethods;
+
+        expect(methods, hasLength(3));
+        expect(FakeRideData.defaultPaymentMethod, FakeRideData.visa4242);
+        expect(FakeRideData.visa4242.label, '•••• 4242');
+        expect(FakeRideData.visa4242.brand, 'Visa');
+        expect(FakeRideData.visa4242.expiryLabel, '08/28');
+        expect(FakeRideData.visa4242.isDefault, isTrue);
+        expect(FakeRideData.visa4242.isCash, isFalse);
+
+        final mastercard = methods.firstWhere(
+          (method) => method.brand == 'Mastercard',
+        );
+        expect(mastercard.label, '•••• 5310');
+        expect(mastercard.expiryLabel, '11/26');
+        expect(mastercard.isDefault, isFalse);
+
+        final cash = methods.firstWhere((method) => method.label == 'Nakit');
+        expect(cash.brand, 'Nakit');
+        expect(cash.expiryLabel, isNull);
+        expect(cash.isCash, isTrue);
+      },
+    );
   });
 }

@@ -2,8 +2,10 @@ import 'package:flutter_map/flutter_map.dart';
 import 'package:go_router/go_router.dart';
 
 import '../location/location_service.dart';
+import '../payments/payment_method_controller.dart';
 import '../permissions/location_permission_service.dart';
 import '../rides/ride_flow_controller.dart';
+import '../screens/account_screen.dart';
 import '../screens/arrived_rating_screen.dart';
 import '../screens/destination_screen.dart';
 import '../screens/driver_found_screen.dart';
@@ -12,9 +14,11 @@ import '../screens/home_screen.dart';
 import '../screens/location_permission_screen.dart';
 import '../screens/name_entry_screen.dart';
 import '../screens/otp_screen.dart';
+import '../screens/payment_methods_screen.dart';
 import '../screens/phone_login_screen.dart';
 import '../screens/ride_screen.dart';
 import '../screens/route_fare_screen.dart';
+import '../screens/trip_history_screen.dart';
 import '../session/session_controller.dart';
 import '../trips/in_memory_trip_history_store.dart';
 import '../trips/trip_history_controller.dart';
@@ -27,6 +31,7 @@ GoRouter createAppRouter({
   LocationService locationService = const GeolocatorLocationService(),
   RideFlowController? rideFlowController,
   TripHistoryController? tripHistoryController,
+  PaymentMethodController? paymentMethodController,
   TileProvider? tileProvider,
   Duration findingDriverWaitDuration = FindingDriverScreen.defaultWaitDuration,
   Duration driverArrivalDuration = DriverFoundScreen.defaultArrivalDuration,
@@ -37,6 +42,7 @@ GoRouter createAppRouter({
   final historyController =
       tripHistoryController ??
       TripHistoryController(InMemoryTripHistoryStore());
+  final payments = paymentMethodController ?? PaymentMethodController();
 
   return GoRouter(
     initialLocation: AppRoutes.login,
@@ -145,8 +151,29 @@ GoRouter createAppRouter({
         builder: (context, state) => ArrivedRatingScreen(
           flowController: flowController,
           tripHistoryController: historyController,
+          paymentMethodController: payments,
           now: now,
         ),
+      ),
+      GoRoute(
+        name: AppRoutes.tripHistory,
+        path: AppRoutes.tripHistory,
+        builder: (context, state) => TripHistoryScreen(
+          tripHistoryController: historyController,
+          now: now,
+        ),
+      ),
+      GoRoute(
+        name: AppRoutes.account,
+        path: AppRoutes.account,
+        builder: (context, state) =>
+            AccountScreen(sessionController: sessionController),
+      ),
+      GoRoute(
+        name: AppRoutes.paymentMethods,
+        path: AppRoutes.paymentMethods,
+        builder: (context, state) =>
+            PaymentMethodsScreen(paymentMethodController: payments),
       ),
     ],
   );
