@@ -84,6 +84,9 @@ abstract final class FakeRideData {
     brand: 'Nakit',
   );
 
+  static const walletBalanceLabel = '₺340,50';
+  static const walletAutoTopUpLabel = 'Otomatik yükleme aktif';
+
   static const paymentMethods = <PaymentMethod>[
     visa4242,
     mastercard5310,
