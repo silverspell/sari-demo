@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../data/fake_account_data.dart';
 import '../session/session.dart';
 import '../session/session_controller.dart';
+import '../session/session_display.dart';
 import '../theme/sari_theme.dart';
 import '../widgets/coming_soon_snack_bar.dart';
 
@@ -42,33 +43,11 @@ class AccountScreen extends StatelessWidget {
 
   Session? get _session => sessionController.session;
 
-  String get _fullName {
-    final name = (_session?.name ?? '').trim();
-    final surname = (_session?.surname ?? '').trim();
-    final parts = [if (name.isNotEmpty) name, if (surname.isNotEmpty) surname];
-    return parts.isEmpty ? 'Misafir' : parts.join(' ');
-  }
+  String get _fullName => SessionDisplay.fullName(_session);
 
-  String get _initials {
-    final name = (_session?.name ?? '').trim();
-    final surname = (_session?.surname ?? '').trim();
-    if (name.isEmpty && surname.isEmpty) {
-      return '?';
-    }
-    final first = name.isEmpty ? '' : name.substring(0, 1);
-    final last = surname.isEmpty ? '' : surname.substring(0, 1);
-    return '$first$last'.toUpperCase();
-  }
+  String get _initials => SessionDisplay.initials(_session);
 
-  String get _phone {
-    final digits = (_session?.phone ?? '').replaceAll(RegExp(r'\D'), '');
-    if (digits.length == 12 && digits.startsWith('90')) {
-      return '+${digits.substring(0, 2)} ${digits.substring(2, 5)} '
-          '${digits.substring(5, 8)} ${digits.substring(8, 10)} '
-          '${digits.substring(10, 12)}';
-    }
-    return _session?.phone ?? '';
-  }
+  String get _phone => SessionDisplay.phone(_session);
 
   Future<void> _handleLogout() async {
     await sessionController.clear();

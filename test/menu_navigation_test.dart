@@ -13,6 +13,7 @@ import 'package:sari/session/location_point.dart';
 import 'package:sari/session/session.dart';
 import 'package:sari/session/session_controller.dart';
 import 'package:sari/theme/sari_theme.dart';
+import 'package:sari/widgets/menu_drawer.dart';
 import 'package:sari/trips/trip_history_controller.dart';
 
 import 'support/fake_session_store.dart';
@@ -70,10 +71,14 @@ _pumpApp(WidgetTester tester) async {
   return (history: history, payments: payments);
 }
 
-Future<void> _pushNamed(WidgetTester tester, String name) async {
-  final context = tester.element(find.byType(HomeScreen));
-  GoRouter.of(context).pushNamed(name);
+Future<void> _openMenuAndTap(WidgetTester tester, Key rowKey) async {
+  await tester.tap(find.byKey(HomeScreen.menuButtonKey));
   await tester.pumpAndSettle();
+  expect(find.byKey(MenuDrawer.panelKey), findsOneWidget);
+
+  await tester.tap(find.byKey(rowKey));
+  await tester.pumpAndSettle();
+  expect(find.byKey(MenuDrawer.panelKey), findsNothing);
 }
 
 Future<void> _popBackToHome(WidgetTester tester, Finder screen) async {
@@ -90,7 +95,7 @@ void main() {
   ) async {
     await _pumpApp(tester);
 
-    await _pushNamed(tester, AppRoutes.tripHistory);
+    await _openMenuAndTap(tester, MenuDrawer.tripHistoryRowKey);
 
     expect(find.byType(TripHistoryScreen), findsOneWidget);
     expect(
@@ -112,7 +117,7 @@ void main() {
   testWidgets('AC1: hesabım rotası açılır ve geri dönülür', (tester) async {
     await _pumpApp(tester);
 
-    await _pushNamed(tester, AppRoutes.account);
+    await _openMenuAndTap(tester, MenuDrawer.accountRowKey);
 
     expect(find.byType(AccountScreen), findsOneWidget);
     expect(_locationOf(tester, find.byType(AccountScreen)), AppRoutes.account);
@@ -128,7 +133,7 @@ void main() {
   ) async {
     final app = await _pumpApp(tester);
 
-    await _pushNamed(tester, AppRoutes.paymentMethods);
+    await _openMenuAndTap(tester, MenuDrawer.paymentMethodsRowKey);
 
     expect(find.byType(PaymentMethodsScreen), findsOneWidget);
     expect(

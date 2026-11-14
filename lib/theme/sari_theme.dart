@@ -23,12 +23,17 @@ abstract final class SariColors {
 
   /// Kullanıcının haritadaki konumunu gösteren mavi.
   static const userLocation = Color(0xFF2F80ED);
+
+  /// Yumuşak marka sarısı: menüdeki profil rozeti ve Sarı Puan kartı.
+  static const primaryFixed = Color(0xFFFFDF92);
+  static const onPrimaryFixed = Color(0xFF241A00);
 }
 
 abstract final class SariRadius {
   static const sheet = 16.0;
   static const button = 12.0;
   static const badge = 8.0;
+  static const drawer = 28.0;
 }
 
 abstract final class SariSpacing {
