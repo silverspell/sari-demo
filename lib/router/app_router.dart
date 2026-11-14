@@ -18,6 +18,7 @@ import '../screens/payment_methods_screen.dart';
 import '../screens/phone_login_screen.dart';
 import '../screens/ride_screen.dart';
 import '../screens/route_fare_screen.dart';
+import '../screens/trip_history_screen.dart';
 import '../session/session_controller.dart';
 import '../trips/in_memory_trip_history_store.dart';
 import '../trips/trip_history_controller.dart';
@@ -155,11 +156,21 @@ GoRouter createAppRouter({
         ),
       ),
       GoRoute(
+        name: AppRoutes.tripHistory,
+        path: AppRoutes.tripHistory,
+        builder: (context, state) => TripHistoryScreen(
+          tripHistoryController: historyController,
+          now: now,
+        ),
+      ),
+      GoRoute(
+        name: AppRoutes.account,
         path: AppRoutes.account,
         builder: (context, state) =>
             AccountScreen(sessionController: sessionController),
       ),
       GoRoute(
+        name: AppRoutes.paymentMethods,
         path: AppRoutes.paymentMethods,
         builder: (context, state) =>
             PaymentMethodsScreen(paymentMethodController: payments),
